@@ -14,7 +14,243 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      categorias: {
+        Row: {
+          cor: string | null
+          empresa_id: string | null
+          id: string
+          nome: string
+          tipo: string | null
+          user_id: string
+        }
+        Insert: {
+          cor?: string | null
+          empresa_id?: string | null
+          id?: string
+          nome: string
+          tipo?: string | null
+          user_id: string
+        }
+        Update: {
+          cor?: string | null
+          empresa_id?: string | null
+          id?: string
+          nome?: string
+          tipo?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categorias_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contas: {
+        Row: {
+          ativo: boolean | null
+          cor: string | null
+          created_at: string | null
+          empresa_id: string | null
+          icone: string | null
+          id: string
+          nome: string
+          saldo_inicial: number | null
+          tipo: string | null
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          cor?: string | null
+          created_at?: string | null
+          empresa_id?: string | null
+          icone?: string | null
+          id?: string
+          nome: string
+          saldo_inicial?: number | null
+          tipo?: string | null
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          cor?: string | null
+          created_at?: string | null
+          empresa_id?: string | null
+          icone?: string | null
+          id?: string
+          nome?: string
+          saldo_inicial?: number | null
+          tipo?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      despesas_fixas: {
+        Row: {
+          ativo: boolean | null
+          categoria_id: string | null
+          conta_id: string
+          created_at: string | null
+          data_fim: string | null
+          data_inicio: string
+          descricao: string
+          dia_vencimento: number
+          empresa_id: string | null
+          id: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          ativo?: boolean | null
+          categoria_id?: string | null
+          conta_id: string
+          created_at?: string | null
+          data_fim?: string | null
+          data_inicio: string
+          descricao: string
+          dia_vencimento: number
+          empresa_id?: string | null
+          id?: string
+          user_id: string
+          valor: number
+        }
+        Update: {
+          ativo?: boolean | null
+          categoria_id?: string | null
+          conta_id?: string
+          created_at?: string | null
+          data_fim?: string | null
+          data_inicio?: string
+          descricao?: string
+          dia_vencimento?: number
+          empresa_id?: string | null
+          id?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "despesas_fixas_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "despesas_fixas_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "despesas_fixas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      empresas: {
+        Row: {
+          created_at: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      lancamentos: {
+        Row: {
+          categoria_id: string | null
+          conta_id: string
+          created_at: string | null
+          data_pagamento: string | null
+          data_vencimento: string
+          descricao: string
+          empresa_id: string | null
+          id: string
+          observacoes: string | null
+          status: string | null
+          tipo: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          categoria_id?: string | null
+          conta_id: string
+          created_at?: string | null
+          data_pagamento?: string | null
+          data_vencimento: string
+          descricao: string
+          empresa_id?: string | null
+          id?: string
+          observacoes?: string | null
+          status?: string | null
+          tipo: string
+          user_id: string
+          valor: number
+        }
+        Update: {
+          categoria_id?: string | null
+          conta_id?: string
+          created_at?: string | null
+          data_pagamento?: string | null
+          data_vencimento?: string
+          descricao?: string
+          empresa_id?: string | null
+          id?: string
+          observacoes?: string | null
+          status?: string | null
+          tipo?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lancamentos_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
