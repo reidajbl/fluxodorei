@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Menu,
   X,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
