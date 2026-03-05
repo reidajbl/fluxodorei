@@ -10,6 +10,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Lancamentos from "./pages/Lancamentos";
 import Contas from "./pages/Contas";
+import DespesasFixas from "./pages/DespesasFixas";
 import Relatorios from "./pages/Relatorios";
 import NotFound from "./pages/NotFound";
 
