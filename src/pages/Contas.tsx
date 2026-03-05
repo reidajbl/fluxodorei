@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Edit2 } from "lucide-react";
 
 const ICONES = ["💰", "🏦", "💳", "👛", "🪙", "💵", "📱"];
 const TIPOS = [
@@ -23,6 +23,7 @@ const Contas = () => {
   const { user } = useAuth();
   const [contas, setContas] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ nome: "", tipo: "banco", saldo_inicial: "0", icone: "💰", cor: "#3b82f6" });
 
   const fetchContas = async () => {
@@ -33,24 +34,41 @@ const Contas = () => {
 
   useEffect(() => { fetchContas(); }, [user]);
 
+  const resetForm = () => {
+    setForm({ nome: "", tipo: "banco", saldo_inicial: "0", icone: "💰", cor: "#3b82f6" });
+    setEditingId(null);
+  };
+
+  const openEdit = (c: any) => {
+    setEditingId(c.id);
+    setForm({ nome: c.nome, tipo: c.tipo || "banco", saldo_inicial: String(c.saldo_inicial || 0), icone: c.icone || "💰", cor: c.cor || "#3b82f6" });
+    setOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
-    const { error } = await supabase.from("contas").insert({
-      nome: form.nome,
+    const payload = {
+      nome: form.nome.trim(),
       tipo: form.tipo,
       saldo_inicial: parseFloat(form.saldo_inicial),
       icone: form.icone,
       cor: form.cor,
-      user_id: user.id,
-    });
+    };
 
-    if (error) toast.error("Erro ao criar conta", { description: error.message });
+    let error;
+    if (editingId) {
+      ({ error } = await supabase.from("contas").update(payload).eq("id", editingId));
+    } else {
+      ({ error } = await supabase.from("contas").insert({ ...payload, user_id: user.id }));
+    }
+
+    if (error) toast.error("Erro ao salvar conta", { description: error.message });
     else {
-      toast.success("Conta criada!");
+      toast.success(editingId ? "Conta atualizada!" : "Conta criada!");
       setOpen(false);
-      setForm({ nome: "", tipo: "banco", saldo_inicial: "0", icone: "💰", cor: "#3b82f6" });
+      resetForm();
       fetchContas();
     }
   };
@@ -69,16 +87,18 @@ const Contas = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Contas</h1>
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
             <DialogTrigger asChild>
               <Button><Plus className="h-4 w-4 mr-2" />Nova Conta</Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
-              <DialogHeader><DialogTitle>Nova Conta</DialogTitle></DialogHeader>
+              <DialogHeader>
+                <DialogTitle>{editingId ? "Editar Conta" : "💰 Nova Conta"}</DialogTitle>
+              </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Nome</Label>
-                  <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required />
+                  <Label>Nome da conta *</Label>
+                  <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required maxLength={100} placeholder="Ex: Nubank, Caixa..." />
                 </div>
                 <div className="space-y-2">
                   <Label>Tipo</Label>
@@ -108,7 +128,10 @@ const Contas = () => {
                   <Label>Cor</Label>
                   <Input type="color" value={form.cor} onChange={(e) => setForm({ ...form, cor: e.target.value })} className="h-10 w-20" />
                 </div>
-                <Button type="submit" className="w-full">Salvar</Button>
+                <div className="flex gap-3">
+                  <Button type="submit" className="flex-1">💾 Salvar</Button>
+                  <Button type="button" variant="outline" className="flex-1" onClick={() => { setOpen(false); resetForm(); }}>❌ Cancelar</Button>
+                </div>
               </form>
             </DialogContent>
           </Dialog>
@@ -134,9 +157,14 @@ const Contas = () => {
                         <p className="text-xs text-muted-foreground capitalize">{c.tipo}</p>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(c.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(c)}>
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(c.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   <p className="mt-4 text-xl font-bold">{formatCurrency(Number(c.saldo_inicial))}</p>
                   <p className="text-xs text-muted-foreground">Saldo inicial</p>

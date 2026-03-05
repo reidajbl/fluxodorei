@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { useState } from "react";
 
 const navItems = [
@@ -62,7 +63,11 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
           </Link>
         ))}
       </nav>
-      <div className="p-3 border-t border-border">
+      <div className="p-3 border-t border-border space-y-1">
+        <div className="flex items-center justify-between px-3">
+          <span className="text-xs text-muted-foreground">Tema</span>
+          <ThemeToggle />
+        </div>
         <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground" onClick={handleSignOut}>
           <LogOut className="h-4 w-4" />
           Sair
@@ -72,25 +77,28 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
   );
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-background">
       {/* Mobile header */}
-      <div className="lg:hidden flex items-center justify-between p-4 bg-background border-b border-border">
+      <div className="lg:hidden flex items-center justify-between p-4 bg-card border-b border-border">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <TrendingUp className="h-4 w-4 text-primary-foreground" />
           </div>
           <span className="font-bold text-sm">FLUXO REI JBL</span>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
-          {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
       </div>
 
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
-          <div className="relative z-50 w-64 bg-background flex flex-col h-full">
+          <div className="relative z-50 w-64 bg-card flex flex-col h-full">
             <SidebarContent />
           </div>
         </div>
@@ -98,7 +106,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 
       <div className="flex">
         {/* Desktop sidebar */}
-        <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-background border-r border-border">
+        <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-card border-r border-border">
           <SidebarContent />
         </aside>
 
