@@ -234,7 +234,12 @@ const Lancamentos = () => {
                           <div className="flex items-center gap-3 min-w-0">
                             <span className="text-base shrink-0">{l.contas?.icone || "💰"}</span>
                             <div className="min-w-0">
-                              <p className="font-medium text-sm truncate">{l.descricao}</p>
+                              <div className="flex items-center gap-1.5">
+                                <p className="font-medium text-sm truncate">{l.descricao}</p>
+                                {l.observacoes?.includes("🔄 Fixa:") && (
+                                  <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">🔄 Fixa</span>
+                                )}
+                              </div>
                               <p className="text-xs text-muted-foreground">{l.categorias?.nome} · {l.contas?.nome}</p>
                             </div>
                           </div>
