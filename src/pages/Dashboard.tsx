@@ -36,6 +36,10 @@ const Dashboard = () => {
     const fetchAll = async () => {
       const inicio = dateHelper.primeiroDiaMes(anoView, mesView);
       const fim = dateHelper.ultimoDiaMes(anoView, mesView);
+
+      // Auto-generate fixas for the viewed month
+      await gerarFixasParaMes(anoView, mesView);
+
       const [{ data: l }, { data: c }, { data: cat }] = await Promise.all([
         supabase.from("lancamentos").select("*, categorias(nome, cor), contas(nome, icone)")
           .gte("data_vencimento", inicio).lte("data_vencimento", fim)
