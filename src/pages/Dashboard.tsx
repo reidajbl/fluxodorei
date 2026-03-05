@@ -4,8 +4,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/shared/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, TrendingDown, Wallet, Target, ChevronLeft, ChevronRight, Plus, Minus } from "lucide-react";
+import { toast } from "@/components/ui/sonner";
+import { TrendingUp, TrendingDown, Wallet, Target, ChevronLeft, ChevronRight, Plus, Minus, Zap } from "lucide-react";
 import { dateHelper } from "@/lib/dateHelper";
+import { gerarFixasParaMes } from "@/lib/gerarFixas";
 import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
@@ -177,6 +179,22 @@ const Dashboard = () => {
           </Button>
           <Button variant="destructive" onClick={() => navigate("/lancamentos")}>
             <Minus className="h-4 w-4 mr-2" />Adicionar despesa
+          </Button>
+          <Button variant="outline" onClick={async () => {
+            const n = await gerarFixasParaMes(anoView, mesView);
+            if (n > 0) {
+              toast.success(`${n} lançamento(s) fixo(s) gerado(s)!`);
+              // Re-fetch
+              const inicio = dateHelper.primeiroDiaMes(anoView, mesView);
+              const fim = dateHelper.ultimoDiaMes(anoView, mesView);
+              const { data: l } = await supabase.from("lancamentos").select("*, categorias(nome, cor), contas(nome, icone)")
+                .gte("data_vencimento", inicio).lte("data_vencimento", fim).order("data_vencimento", { ascending: false });
+              if (l) setLancamentos(l);
+            } else {
+              toast.info("Nenhuma fixa pendente para gerar neste mês.");
+            }
+          }}>
+            <Zap className="h-4 w-4 mr-2" />Gerar fixas do mês
           </Button>
         </div>
 

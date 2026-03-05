@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Menu,
   X,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
@@ -19,6 +20,7 @@ import { useState } from "react";
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/lancamentos", label: "Lançamentos", icon: ArrowLeftRight },
+  { href: "/despesas-fixas", label: "Despesas Fixas", icon: RefreshCw },
   { href: "/contas", label: "Contas", icon: Wallet },
   { href: "/relatorios", label: "Relatórios", icon: BarChart3 },
 ];
