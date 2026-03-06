@@ -20,6 +20,7 @@ const Lancamentos = () => {
   const [contas, setContas] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
+  const [catOpen, setCatOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const hoje = dateHelper.hojeStr();
   const [form, setForm] = useState({
