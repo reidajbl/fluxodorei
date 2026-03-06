@@ -189,7 +189,12 @@ const Lancamentos = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Categoria</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Categoria</Label>
+                  <Button type="button" variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => setCatOpen(true)}>
+                    <Settings className="h-3 w-3" /> Gerenciar
+                  </Button>
+                </div>
                 <Select value={form.categoria_id} onValueChange={(v) => setForm({ ...form, categoria_id: v })}>
                   <SelectTrigger><SelectValue placeholder="Selecione a categoria" /></SelectTrigger>
                   <SelectContent>
