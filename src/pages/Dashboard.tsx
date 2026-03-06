@@ -41,14 +41,12 @@ const Dashboard = () => {
   const refetch = async () => {
     const inicio = dateHelper.primeiroDiaMes(anoView, mesView);
     const fim = dateHelper.ultimoDiaMes(anoView, mesView);
-    const [{ data: l }, { data: c }, { data: cat }, { data: all }] = await Promise.all([
+    const [{ data: l }, { data: c }, { data: cat }] = await Promise.all([
       supabase.from("lancamentos").select("*, categorias(nome, cor), contas(nome, icone)")
         .gte("data_vencimento", inicio).lte("data_vencimento", fim)
         .order("data_vencimento", { ascending: false }),
       supabase.from("contas").select("*").eq("ativo", true),
       supabase.from("categorias").select("*"),
-      supabase.from("lancamentos").select("*, categorias(nome, cor)")
-        .order("data_vencimento", { ascending: true }),
     ]);
     if (l) setLancamentos(l);
     if (c) setContas(c);
