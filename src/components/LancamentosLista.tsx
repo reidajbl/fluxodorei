@@ -292,6 +292,7 @@ export default function LancamentosLista({
         </CardContent>
       </Card>
       <GerenciarCategorias open={catOpen} onOpenChange={setCatOpen} onUpdate={onRefresh} />
+      <GerenciarTiposRecebimento open={tipoRecOpen} onOpenChange={setTipoRecOpen} onUpdate={onRefresh} />
     </div>
   );
 }

@@ -46,6 +46,7 @@ const Lancamentos = () => {
         lancamentos={lancamentos}
         contas={contas}
         categorias={categorias}
+        tiposRecebimento={tiposRecebimento}
         mesView={mesView}
         anoView={anoView}
         onMesAnterior={mesAnterior}
