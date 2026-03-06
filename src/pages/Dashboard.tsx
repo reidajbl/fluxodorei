@@ -5,7 +5,7 @@ import DashboardLayout from "@/components/shared/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
-import { TrendingUp, TrendingDown, Wallet, Target, ChevronLeft, ChevronRight, Plus, Minus, Zap, AlertTriangle, RefreshCw, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Target, ChevronLeft, ChevronRight, Plus, Minus, AlertTriangle, RefreshCw, BarChart3 } from "lucide-react";
 import { dateHelper } from "@/lib/dateHelper";
 import { gerarFixasParaMes } from "@/lib/gerarFixas";
 import { useNavigate } from "react-router-dom";
@@ -252,17 +252,6 @@ const Dashboard = () => {
           </Button>
           <Button variant="outline" onClick={() => navigate("/relatorios")}>
             <BarChart3 className="h-4 w-4 mr-2" />Relatórios
-          </Button>
-          <Button variant="outline" onClick={async () => {
-            const n = await gerarFixasParaMes(anoView, mesView);
-            if (n > 0) {
-              toast.success(`${n} lançamento(s) fixo(s) gerado(s)!`);
-              await refetch();
-            } else {
-              toast.info("Nenhuma fixa pendente para gerar.");
-            }
-          }}>
-            <Zap className="h-4 w-4 mr-2" />Gerar fixas
           </Button>
         </div>
 
