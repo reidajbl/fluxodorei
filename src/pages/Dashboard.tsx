@@ -20,6 +20,7 @@ const Dashboard = () => {
   const [lancamentos, setLancamentos] = useState<any[]>([]);
   const [contas, setContas] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
+  const [tiposRecebimento, setTiposRecebimento] = useState<any[]>([]);
   const [alertDismissed, setAlertDismissed] = useState(false);
 
   const { ano: anoAtual, mes: mesAtual } = dateHelper.mesAnoAtual();
