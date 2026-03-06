@@ -12,6 +12,7 @@ import { toast } from "@/components/ui/sonner";
 import { Plus, Minus, Trash2, Edit2, Settings, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { dateHelper } from "@/lib/dateHelper";
 import GerenciarCategorias from "@/components/GerenciarCategorias";
+import GerenciarTiposRecebimento from "@/components/GerenciarTiposRecebimento";
 
 type Filtro = "todos" | "a_vencer" | "vencidos" | "pagos" | "recebidos";
 
