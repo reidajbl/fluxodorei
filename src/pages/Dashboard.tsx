@@ -77,7 +77,7 @@ const Dashboard = () => {
     const totalContas = contas.reduce((acc, c) => acc + Number(c.saldo_inicial || 0), 0);
     const receitasMes = lancamentos.filter(l => l.tipo === "receita").reduce((acc, l) => acc + Number(l.valor), 0);
     const despesasMes = lancamentos.filter(l => l.tipo === "despesa").reduce((acc, l) => acc + Number(l.valor), 0);
-    const projecao = totalContas + receitasMes - despesasMes;
+    const projecao = totalContas - despesasMes;
     return { aReceber, aPagar, totalContas, projecao, countReceitas: receitasPendentes.length, countDespesas: despesasPendentes.length, despesasMes };
   }, [lancamentos, contas]);
 
