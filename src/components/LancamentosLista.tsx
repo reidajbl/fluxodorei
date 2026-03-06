@@ -68,10 +68,11 @@ export default function LancamentosLista({
   const [form, setForm] = useState({
     descricao: "", valor: "", tipo: "despesa", conta_id: "", categoria_id: "",
     data_vencimento: hoje, data_pagamento: "", jaPago: false, observacoes: "",
+    tipo_recebimento_id: "",
   });
 
   const resetForm = () => {
-    setForm({ descricao: "", valor: "", tipo: "despesa", conta_id: "", categoria_id: "", data_vencimento: hoje, data_pagamento: "", jaPago: false, observacoes: "" });
+    setForm({ descricao: "", valor: "", tipo: "despesa", conta_id: "", categoria_id: "", data_vencimento: hoje, data_pagamento: "", jaPago: false, observacoes: "", tipo_recebimento_id: "" });
     setEditingId(null);
   };
 
