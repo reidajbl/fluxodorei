@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Lancamentos from "./pages/Lancamentos";
 import Contas from "./pages/Contas";
 import DespesasFixas from "./pages/DespesasFixas";
+import Categorias from "./pages/Categorias";
 import Relatorios from "./pages/Relatorios";
 import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
