@@ -95,6 +95,7 @@ export default function LancamentosLista({
     const payload = {
       descricao: form.descricao.trim(), valor: parseFloat(form.valor), tipo: form.tipo,
       conta_id: form.conta_id, categoria_id: form.categoria_id || null,
+      tipo_recebimento_id: form.tipo_recebimento_id || null,
       data_vencimento: form.data_vencimento,
       data_pagamento: form.jaPago ? (form.data_pagamento || hoje) : null,
       status: form.jaPago ? "pago" : "a_vencer",
