@@ -13,6 +13,26 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const PIE_COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"];
 
+type Filtro = "todos" | "a_vencer" | "vencidos" | "pagos" | "recebidos";
+
+const TABS: { key: Filtro; label: string }[] = [
+  { key: "todos", label: "Todos" },
+  { key: "a_vencer", label: "A Vencer" },
+  { key: "vencidos", label: "Vencidos" },
+  { key: "pagos", label: "Pagos" },
+  { key: "recebidos", label: "Recebidos" },
+];
+
+function getStatusInfo(l: any) {
+  const hoje = dateHelper.hojeStr();
+  if (l.status === "pago" || l.data_pagamento) {
+    if (l.tipo === "receita") return { label: "RECEBIDO", emoji: "✅", cls: "bg-success/10 text-success" };
+    return { label: "PAGO", emoji: "✅", cls: "bg-success/10 text-success" };
+  }
+  if (l.data_vencimento < hoje) return { label: "VENCIDO", emoji: "🔴", cls: "bg-destructive/10 text-destructive" };
+  return { label: "A VENCER", emoji: "🟡", cls: "bg-warning/10 text-warning" };
+}
+
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
