@@ -18,7 +18,6 @@ const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [lancamentos, setLancamentos] = useState<any[]>([]);
-  const [allLancamentos, setAllLancamentos] = useState<any[]>([]);
   const [contas, setContas] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
   const [alertDismissed, setAlertDismissed] = useState(false);
