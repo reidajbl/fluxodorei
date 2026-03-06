@@ -194,6 +194,7 @@ export type Database = {
           observacoes: string | null
           status: string | null
           tipo: string
+          tipo_recebimento_id: string | null
           user_id: string
           valor: number
         }
@@ -209,6 +210,7 @@ export type Database = {
           observacoes?: string | null
           status?: string | null
           tipo: string
+          tipo_recebimento_id?: string | null
           user_id: string
           valor: number
         }
@@ -224,6 +226,7 @@ export type Database = {
           observacoes?: string | null
           status?: string | null
           tipo?: string
+          tipo_recebimento_id?: string | null
           user_id?: string
           valor?: number
         }
@@ -249,7 +252,41 @@ export type Database = {
             referencedRelation: "empresas"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "lancamentos_tipo_recebimento_id_fkey"
+            columns: ["tipo_recebimento_id"]
+            isOneToOne: false
+            referencedRelation: "tipos_recebimento"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      tipos_recebimento: {
+        Row: {
+          cor: string | null
+          created_at: string | null
+          icone: string | null
+          id: string
+          nome: string
+          user_id: string
+        }
+        Insert: {
+          cor?: string | null
+          created_at?: string | null
+          icone?: string | null
+          id?: string
+          nome: string
+          user_id: string
+        }
+        Update: {
+          cor?: string | null
+          created_at?: string | null
+          icone?: string | null
+          id?: string
+          nome?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
