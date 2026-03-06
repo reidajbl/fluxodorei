@@ -23,6 +23,7 @@ const navItems = [
   { href: "/lancamentos", label: "Lançamentos", icon: ArrowLeftRight },
   { href: "/despesas-fixas", label: "Despesas Fixas", icon: RefreshCw },
   { href: "/contas", label: "Contas", icon: Wallet },
+  { href: "/categorias", label: "Categorias", icon: Tag },
   { href: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];
