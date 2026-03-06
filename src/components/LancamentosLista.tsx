@@ -52,13 +52,14 @@ const formatCurrency = (v: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
 export default function LancamentosLista({
-  lancamentos, contas, categorias,
+  lancamentos, contas, categorias, tiposRecebimento,
   mesView, anoView, onMesAnterior, onMesProximo, onMesAtual,
   onRefresh, showNewButtons = true,
 }: LancamentosListaProps) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
+  const [tipoRecOpen, setTipoRecOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [busca, setBusca] = useState("");
