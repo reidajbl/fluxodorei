@@ -131,16 +131,29 @@ const Dashboard = () => {
     return despesas.map(d => ({ ...d, pct: total > 0 ? (Number(d.valor) / total) * 100 : 0 }));
   }, [lancamentos]);
 
-  // Group lancamentos by date
+  // Apply filters (same logic as Lancamentos page)
+  const filtered = useMemo(() => {
+    return lancamentos.filter(l => {
+      if (busca && !l.descricao.toLowerCase().includes(busca.toLowerCase())) return false;
+      const status = getStatusInfo(l);
+      if (filtro === "a_vencer") return status.label === "A VENCER";
+      if (filtro === "vencidos") return status.label === "VENCIDO";
+      if (filtro === "pagos") return l.tipo === "despesa" && status.label === "PAGO";
+      if (filtro === "recebidos") return l.tipo === "receita" && status.label === "RECEBIDO";
+      return true;
+    });
+  }, [lancamentos, filtro, busca]);
+
+  // Group filtered lancamentos by date
   const grouped = useMemo(() => {
     const groups: Record<string, any[]> = {};
-    lancamentos.forEach(l => {
+    filtered.forEach(l => {
       const d = l.data_vencimento;
       if (!groups[d]) groups[d] = [];
       groups[d].push(l);
     });
     return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
-  }, [lancamentos]);
+  }, [filtered]);
 
   // Category pie data
   const categoryPieData = useMemo(() => {
