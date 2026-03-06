@@ -1,4 +1,4 @@
-import { ReactNode } from "react"; 
+import { ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,6 @@ import {
   X,
   RefreshCw,
   Settings,
-  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
@@ -24,7 +23,6 @@ const navItems = [
   { href: "/lancamentos", label: "Lançamentos", icon: ArrowLeftRight },
   { href: "/despesas-fixas", label: "Despesas Fixas", icon: RefreshCw },
   { href: "/contas", label: "Contas", icon: Wallet },
-  { href: "/categorias", label: "Categorias", icon: Tag },
   { href: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];
