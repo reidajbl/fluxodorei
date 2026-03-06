@@ -18,7 +18,6 @@ const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [lancamentos, setLancamentos] = useState<any[]>([]);
-  const [allLancamentos, setAllLancamentos] = useState<any[]>([]);
   const [contas, setContas] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
   const [alertDismissed, setAlertDismissed] = useState(false);
@@ -42,19 +41,16 @@ const Dashboard = () => {
   const refetch = async () => {
     const inicio = dateHelper.primeiroDiaMes(anoView, mesView);
     const fim = dateHelper.ultimoDiaMes(anoView, mesView);
-    const [{ data: l }, { data: c }, { data: cat }, { data: all }] = await Promise.all([
+    const [{ data: l }, { data: c }, { data: cat }] = await Promise.all([
       supabase.from("lancamentos").select("*, categorias(nome, cor), contas(nome, icone)")
         .gte("data_vencimento", inicio).lte("data_vencimento", fim)
         .order("data_vencimento", { ascending: false }),
       supabase.from("contas").select("*").eq("ativo", true),
       supabase.from("categorias").select("*"),
-      supabase.from("lancamentos").select("*, categorias(nome, cor)")
-        .order("data_vencimento", { ascending: true }),
     ]);
     if (l) setLancamentos(l);
     if (c) setContas(c);
     if (cat) setCategorias(cat);
-    if (all) setAllLancamentos(all);
   };
 
   useEffect(() => {
@@ -79,19 +75,6 @@ const Dashboard = () => {
     return { aReceber, aPagar, totalContas, projecao, countReceitas: receitasPendentes.length, countDespesas: despesasPendentes.length };
   }, [lancamentos, contas]);
 
-  const projecoes = useMemo(() => {
-    const hoje = dateHelper.hojeStr();
-    const totalContas = contas.reduce((acc, c) => acc + Number(c.saldo_inicial || 0), 0);
-    const calcProj = (dias: number) => {
-      const target = new Date();
-      target.setDate(target.getDate() + dias);
-      const targetStr = dateHelper.criarDataSegura(target.getFullYear(), target.getMonth() + 1, target.getDate());
-      const aPagar = allLancamentos.filter(l => l.tipo === "despesa" && l.status !== "pago" && l.data_vencimento >= hoje && l.data_vencimento <= targetStr)
-        .reduce((acc, l) => acc + Number(l.valor), 0);
-      return totalContas - aPagar;
-    };
-    return { d30: calcProj(30), d60: calcProj(60), d90: calcProj(90) };
-  }, [allLancamentos, contas]);
 
   const categoryPieData = useMemo(() => {
     const cats: Record<string, { nome: string; valor: number; cor: string }> = {};
@@ -201,28 +184,6 @@ const Dashboard = () => {
           </Button>
         </div>
 
-        {/* Projections 30/60/90 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">📈 Projeções Futuras</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { label: "30 dias", value: projecoes.d30 },
-                { label: "60 dias", value: projecoes.d60 },
-                { label: "90 dias", value: projecoes.d90 },
-              ].map(p => (
-                <div key={p.label} className="text-center p-3 bg-muted/50 rounded-lg">
-                  <p className="text-xs text-muted-foreground uppercase">{p.label}</p>
-                  <p className={`text-lg font-bold ${p.value >= 0 ? "text-success" : "text-destructive"}`}>
-                    {formatCurrency(p.value)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Main grid: Lancamentos + Sidebar */}
         <div className="grid gap-6 lg:grid-cols-3">
