@@ -213,6 +213,14 @@ export default function LancamentosLista({
                 <SelectContent>{filteredCategories.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between"><Label>💰 Tipo de Recebimento</Label>
+                <Button type="button" variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => setTipoRecOpen(true)}><Settings className="h-3 w-3" /> Gerenciar</Button>
+              </div>
+              <Select value={form.tipo_recebimento_id} onValueChange={v => setForm({ ...form, tipo_recebimento_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
+                <SelectContent>{tiposRecebimento.map(t => <SelectItem key={t.id} value={t.id}>{t.icone} {t.nome}</SelectItem>)}</SelectContent>
+              </Select>
             <div className="flex items-center gap-2">
               <Checkbox id="jaPago" checked={form.jaPago} onCheckedChange={v => setForm({ ...form, jaPago: !!v, data_pagamento: v ? hoje : "" })} />
               <Label htmlFor="jaPago" className="cursor-pointer">Já foi pago/recebido?</Label>
