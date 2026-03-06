@@ -188,28 +188,6 @@ const Dashboard = () => {
           </Button>
         </div>
 
-        {/* Projections 30/60/90 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">📈 Projeções Futuras</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { label: "30 dias", value: projecoes.d30 },
-                { label: "60 dias", value: projecoes.d60 },
-                { label: "90 dias", value: projecoes.d90 },
-              ].map(p => (
-                <div key={p.label} className="text-center p-3 bg-muted/50 rounded-lg">
-                  <p className="text-xs text-muted-foreground uppercase">{p.label}</p>
-                  <p className={`text-lg font-bold ${p.value >= 0 ? "text-success" : "text-destructive"}`}>
-                    {formatCurrency(p.value)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Main grid: Lancamentos + Sidebar */}
         <div className="grid gap-6 lg:grid-cols-3">
