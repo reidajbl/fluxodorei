@@ -131,7 +131,7 @@ const Dashboard = () => {
               <div className="flex-1">
                 <h4 className="font-bold text-destructive text-sm">🚨 ATENÇÃO: PROJEÇÃO NEGATIVA</h4>
                 <p className="text-xs text-destructive/80 mt-1">
-                  Seu saldo de {formatCurrency(resumo.totalContas)} não será suficiente para as despesas de {formatCurrency(resumo.despesasMes)} deste mês.
+                  Seu saldo de {formatCurrency(resumo.totalContas)} não é suficiente para cobrir {formatCurrency(resumo.aPagar)} a pagar.
                 </p>
                 <p className="text-xs font-semibold text-destructive mt-1">
                   🔴 Déficit projetado: {formatCurrency(Math.abs(resumo.projecao))}
