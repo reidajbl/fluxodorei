@@ -261,7 +261,10 @@ export default function LancamentosLista({
                                   <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">🔄</span>
                                 )}
                               </div>
-                              <p className="text-xs text-muted-foreground">{l.categorias?.nome} · {l.contas?.nome}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {l.categorias?.nome} · {l.contas?.nome}
+                                {l.tipos_recebimento?.nome ? ` · ${l.tipos_recebimento.icone || "💳"} ${l.tipos_recebimento.nome}` : ""}
+                              </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
