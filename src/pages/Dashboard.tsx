@@ -3,15 +3,36 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/shared/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
-import { TrendingUp, TrendingDown, Wallet, Target, ChevronLeft, ChevronRight, Plus, Minus, AlertTriangle, RefreshCw, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Target, ChevronLeft, ChevronRight, Plus, Minus, AlertTriangle, RefreshCw, BarChart3, Search } from "lucide-react";
 import { dateHelper } from "@/lib/dateHelper";
 import { gerarFixasParaMes } from "@/lib/gerarFixas";
 import { useNavigate } from "react-router-dom";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const PIE_COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"];
+
+type Filtro = "todos" | "a_vencer" | "vencidos" | "pagos" | "recebidos";
+
+const TABS: { key: Filtro; label: string }[] = [
+  { key: "todos", label: "Todos" },
+  { key: "a_vencer", label: "A Vencer" },
+  { key: "vencidos", label: "Vencidos" },
+  { key: "pagos", label: "Pagos" },
+  { key: "recebidos", label: "Recebidos" },
+];
+
+function getStatusInfo(l: any) {
+  const hoje = dateHelper.hojeStr();
+  if (l.status === "pago" || l.data_pagamento) {
+    if (l.tipo === "receita") return { label: "RECEBIDO", emoji: "✅", cls: "bg-success/10 text-success" };
+    return { label: "PAGO", emoji: "✅", cls: "bg-success/10 text-success" };
+  }
+  if (l.data_vencimento < hoje) return { label: "VENCIDO", emoji: "🔴", cls: "bg-destructive/10 text-destructive" };
+  return { label: "A VENCER", emoji: "🟡", cls: "bg-warning/10 text-warning" };
+}
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -21,6 +42,8 @@ const Dashboard = () => {
   const [contas, setContas] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
   const [alertDismissed, setAlertDismissed] = useState(false);
+  const [filtro, setFiltro] = useState<Filtro>("todos");
+  const [busca, setBusca] = useState("");
 
   const { ano: anoAtual, mes: mesAtual } = dateHelper.mesAnoAtual();
   const [mesView, setMesView] = useState(mesAtual);
@@ -109,16 +132,29 @@ const Dashboard = () => {
     return despesas.map(d => ({ ...d, pct: total > 0 ? (Number(d.valor) / total) * 100 : 0 }));
   }, [lancamentos]);
 
-  // Group lancamentos by date
+  // Apply filters (same logic as Lancamentos page)
+  const filtered = useMemo(() => {
+    return lancamentos.filter(l => {
+      if (busca && !l.descricao.toLowerCase().includes(busca.toLowerCase())) return false;
+      const status = getStatusInfo(l);
+      if (filtro === "a_vencer") return status.label === "A VENCER";
+      if (filtro === "vencidos") return status.label === "VENCIDO";
+      if (filtro === "pagos") return l.tipo === "despesa" && status.label === "PAGO";
+      if (filtro === "recebidos") return l.tipo === "receita" && status.label === "RECEBIDO";
+      return true;
+    });
+  }, [lancamentos, filtro, busca]);
+
+  // Group filtered lancamentos by date
   const grouped = useMemo(() => {
     const groups: Record<string, any[]> = {};
-    lancamentos.forEach(l => {
+    filtered.forEach(l => {
       const d = l.data_vencimento;
       if (!groups[d]) groups[d] = [];
       groups[d].push(l);
     });
     return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
-  }, [lancamentos]);
+  }, [filtered]);
 
   // Category pie data
   const categoryPieData = useMemo(() => {
@@ -278,7 +314,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Main grid: Lancamentos + Sidebar */}
+          {/* Main grid: Lancamentos + Sidebar */}
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Lancamentos grouped by date */}
           <Card className="lg:col-span-2">
@@ -287,9 +323,26 @@ const Dashboard = () => {
                 📋 Lançamentos — {dateHelper.nomeMes(mesView)} {anoView}
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {/* Tabs */}
+              <div className="flex flex-wrap gap-1.5">
+                {TABS.map(t => (
+                  <Button key={t.key} variant={filtro === t.key ? "default" : "outline"} size="sm"
+                    onClick={() => setFiltro(t.key)} className="text-xs">
+                    {t.label}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Buscar lançamento..." value={busca} onChange={e => setBusca(e.target.value)}
+                  className="pl-9" />
+              </div>
+
               {grouped.length === 0 ? (
-                <p className="text-muted-foreground text-sm text-center py-8">Nenhum lançamento neste mês.</p>
+                <p className="text-muted-foreground text-sm text-center py-8">Nenhum lançamento encontrado.</p>
               ) : (
                 <div className="space-y-4">
                   {grouped.map(([date, items]) => (
@@ -298,30 +351,33 @@ const Dashboard = () => {
                         {date === dateHelper.hojeStr() ? "📌 HOJE — " : ""}{dateHelper.formatarDataCompleta(date)}
                       </p>
                       <div className="space-y-1">
-                        {items.map((l: any) => (
-                          <div key={l.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-accent/50 transition-colors">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <span className="text-base shrink-0">{l.contas?.icone || "💰"}</span>
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                  <p className="font-medium text-sm truncate">{l.descricao}</p>
-                                  {l.observacoes?.includes("🔄 Fixa:") && (
-                                    <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">🔄</span>
-                                  )}
+                        {items.map((l: any) => {
+                          const st = getStatusInfo(l);
+                          return (
+                            <div key={l.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-accent/50 transition-colors">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <span className="text-base shrink-0">{l.contas?.icone || "💰"}</span>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <p className="font-medium text-sm truncate">{l.descricao}</p>
+                                    {l.observacoes?.includes("🔄 Fixa:") && (
+                                      <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">🔄</span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">{l.categorias?.nome} · {l.contas?.nome || ""}</p>
                                 </div>
-                                <p className="text-xs text-muted-foreground">{l.categorias?.nome} · {l.contas?.nome || ""}</p>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className={`font-semibold text-sm ${l.tipo === "receita" ? "text-success" : "text-destructive"}`}>
+                                  {l.tipo === "receita" ? "+" : "-"}{formatCurrency(Number(l.valor))}
+                                </span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${st.cls}`}>
+                                  {st.emoji} {st.label}
+                                </span>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className={`font-semibold text-sm ${l.tipo === "receita" ? "text-success" : "text-destructive"}`}>
-                                {l.tipo === "receita" ? "+" : "-"}{formatCurrency(Number(l.valor))}
-                              </span>
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${l.status === "pago" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
-                                {l.status === "pago" ? "✅" : "⏳"}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
