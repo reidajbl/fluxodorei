@@ -273,6 +273,7 @@ const Lancamentos = () => {
             )}
           </CardContent>
         </Card>
+        <GerenciarCategorias open={catOpen} onOpenChange={setCatOpen} onUpdate={fetchData} />
       </div>
     </DashboardLayout>
   );
