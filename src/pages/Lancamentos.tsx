@@ -10,8 +10,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
-import { Plus, Minus, Trash2, Edit2 } from "lucide-react";
+import { Plus, Minus, Trash2, Edit2, Settings } from "lucide-react";
 import { dateHelper } from "@/lib/dateHelper";
+import GerenciarCategorias from "@/components/GerenciarCategorias";
 
 const Lancamentos = () => {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ const Lancamentos = () => {
   const [contas, setContas] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
+  const [catOpen, setCatOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const hoje = dateHelper.hojeStr();
   const [form, setForm] = useState({
@@ -187,7 +189,12 @@ const Lancamentos = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Categoria</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Categoria</Label>
+                  <Button type="button" variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => setCatOpen(true)}>
+                    <Settings className="h-3 w-3" /> Gerenciar
+                  </Button>
+                </div>
                 <Select value={form.categoria_id} onValueChange={(v) => setForm({ ...form, categoria_id: v })}>
                   <SelectTrigger><SelectValue placeholder="Selecione a categoria" /></SelectTrigger>
                   <SelectContent>
@@ -266,6 +273,7 @@ const Lancamentos = () => {
             )}
           </CardContent>
         </Card>
+        <GerenciarCategorias open={catOpen} onOpenChange={setCatOpen} onUpdate={fetchData} />
       </div>
     </DashboardLayout>
   );
