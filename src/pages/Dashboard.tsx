@@ -253,17 +253,6 @@ const Dashboard = () => {
           <Button variant="outline" onClick={() => navigate("/relatorios")}>
             <BarChart3 className="h-4 w-4 mr-2" />Relatórios
           </Button>
-          <Button variant="outline" onClick={async () => {
-            const n = await gerarFixasParaMes(anoView, mesView);
-            if (n > 0) {
-              toast.success(`${n} lançamento(s) fixo(s) gerado(s)!`);
-              await refetch();
-            } else {
-              toast.info("Nenhuma fixa pendente para gerar.");
-            }
-          }}>
-            <Zap className="h-4 w-4 mr-2" />Gerar fixas
-          </Button>
         </div>
 
         {/* Projections 30/60/90 */}
