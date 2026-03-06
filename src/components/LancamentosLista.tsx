@@ -12,6 +12,7 @@ import { toast } from "@/components/ui/sonner";
 import { Plus, Minus, Trash2, Edit2, Settings, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { dateHelper } from "@/lib/dateHelper";
 import GerenciarCategorias from "@/components/GerenciarCategorias";
+import GerenciarTiposRecebimento from "@/components/GerenciarTiposRecebimento";
 
 type Filtro = "todos" | "a_vencer" | "vencidos" | "pagos" | "recebidos";
 
@@ -37,6 +38,7 @@ interface LancamentosListaProps {
   lancamentos: any[];
   contas: any[];
   categorias: any[];
+  tiposRecebimento: any[];
   mesView: number;
   anoView: number;
   onMesAnterior: () => void;
@@ -50,13 +52,14 @@ const formatCurrency = (v: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
 export default function LancamentosLista({
-  lancamentos, contas, categorias,
+  lancamentos, contas, categorias, tiposRecebimento,
   mesView, anoView, onMesAnterior, onMesProximo, onMesAtual,
   onRefresh, showNewButtons = true,
 }: LancamentosListaProps) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
+  const [tipoRecOpen, setTipoRecOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [busca, setBusca] = useState("");
@@ -65,10 +68,11 @@ export default function LancamentosLista({
   const [form, setForm] = useState({
     descricao: "", valor: "", tipo: "despesa", conta_id: "", categoria_id: "",
     data_vencimento: hoje, data_pagamento: "", jaPago: false, observacoes: "",
+    tipo_recebimento_id: "",
   });
 
   const resetForm = () => {
-    setForm({ descricao: "", valor: "", tipo: "despesa", conta_id: "", categoria_id: "", data_vencimento: hoje, data_pagamento: "", jaPago: false, observacoes: "" });
+    setForm({ descricao: "", valor: "", tipo: "despesa", conta_id: "", categoria_id: "", data_vencimento: hoje, data_pagamento: "", jaPago: false, observacoes: "", tipo_recebimento_id: "" });
     setEditingId(null);
   };
 
@@ -80,7 +84,7 @@ export default function LancamentosLista({
       descricao: l.descricao, valor: String(l.valor), tipo: l.tipo, conta_id: l.conta_id,
       categoria_id: l.categoria_id || "", data_vencimento: l.data_vencimento,
       data_pagamento: l.data_pagamento || "", jaPago: l.status === "pago",
-      observacoes: l.observacoes || "",
+      observacoes: l.observacoes || "", tipo_recebimento_id: l.tipo_recebimento_id || "",
     });
     setOpen(true);
   };
@@ -91,6 +95,7 @@ export default function LancamentosLista({
     const payload = {
       descricao: form.descricao.trim(), valor: parseFloat(form.valor), tipo: form.tipo,
       conta_id: form.conta_id, categoria_id: form.categoria_id || null,
+      tipo_recebimento_id: form.tipo_recebimento_id || null,
       data_vencimento: form.data_vencimento,
       data_pagamento: form.jaPago ? (form.data_pagamento || hoje) : null,
       status: form.jaPago ? "pago" : "a_vencer",
@@ -208,6 +213,15 @@ export default function LancamentosLista({
                 <SelectContent>{filteredCategories.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between"><Label>💰 Tipo de Recebimento</Label>
+                <Button type="button" variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => setTipoRecOpen(true)}><Settings className="h-3 w-3" /> Gerenciar</Button>
+              </div>
+              <Select value={form.tipo_recebimento_id} onValueChange={v => setForm({ ...form, tipo_recebimento_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
+                <SelectContent>{tiposRecebimento.map(t => <SelectItem key={t.id} value={t.id}>{t.icone} {t.nome}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
             <div className="flex items-center gap-2">
               <Checkbox id="jaPago" checked={form.jaPago} onCheckedChange={v => setForm({ ...form, jaPago: !!v, data_pagamento: v ? hoje : "" })} />
               <Label htmlFor="jaPago" className="cursor-pointer">Já foi pago/recebido?</Label>
@@ -248,7 +262,10 @@ export default function LancamentosLista({
                                   <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">🔄</span>
                                 )}
                               </div>
-                              <p className="text-xs text-muted-foreground">{l.categorias?.nome} · {l.contas?.nome}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {l.categorias?.nome} · {l.contas?.nome}
+                                {l.tipos_recebimento?.nome ? ` · ${l.tipos_recebimento.icone || "💳"} ${l.tipos_recebimento.nome}` : ""}
+                              </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
@@ -276,6 +293,7 @@ export default function LancamentosLista({
         </CardContent>
       </Card>
       <GerenciarCategorias open={catOpen} onOpenChange={setCatOpen} onUpdate={onRefresh} />
+      <GerenciarTiposRecebimento open={tipoRecOpen} onOpenChange={setTipoRecOpen} onUpdate={onRefresh} />
     </div>
   );
 }
