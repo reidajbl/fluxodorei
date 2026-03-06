@@ -79,19 +79,6 @@ const Dashboard = () => {
     return { aReceber, aPagar, totalContas, projecao, countReceitas: receitasPendentes.length, countDespesas: despesasPendentes.length };
   }, [lancamentos, contas]);
 
-  const projecoes = useMemo(() => {
-    const hoje = dateHelper.hojeStr();
-    const totalContas = contas.reduce((acc, c) => acc + Number(c.saldo_inicial || 0), 0);
-    const calcProj = (dias: number) => {
-      const target = new Date();
-      target.setDate(target.getDate() + dias);
-      const targetStr = dateHelper.criarDataSegura(target.getFullYear(), target.getMonth() + 1, target.getDate());
-      const aPagar = allLancamentos.filter(l => l.tipo === "despesa" && l.status !== "pago" && l.data_vencimento >= hoje && l.data_vencimento <= targetStr)
-        .reduce((acc, l) => acc + Number(l.valor), 0);
-      return totalContas - aPagar;
-    };
-    return { d30: calcProj(30), d60: calcProj(60), d90: calcProj(90) };
-  }, [allLancamentos, contas]);
 
   const categoryPieData = useMemo(() => {
     const cats: Record<string, { nome: string; valor: number; cor: string }> = {};
