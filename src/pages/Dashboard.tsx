@@ -188,7 +188,7 @@ const Dashboard = () => {
               <div className={`text-lg font-bold ${resumo.projecao >= 0 ? "text-success" : "text-destructive"}`}>
                 {formatCurrency(resumo.projecao)}
               </div>
-              <p className="text-xs text-muted-foreground">Previsão do mês</p>
+              <p className="text-xs text-muted-foreground">Contas − Despesas do mês</p>
             </CardContent>
           </Card>
         </div>
