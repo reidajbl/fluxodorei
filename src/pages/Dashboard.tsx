@@ -313,7 +313,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Main grid: Lancamentos + Sidebar */}
+          {/* Main grid: Lancamentos + Sidebar */}
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Lancamentos grouped by date */}
           <Card className="lg:col-span-2">
@@ -322,9 +322,26 @@ const Dashboard = () => {
                 📋 Lançamentos — {dateHelper.nomeMes(mesView)} {anoView}
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {/* Tabs */}
+              <div className="flex flex-wrap gap-1.5">
+                {TABS.map(t => (
+                  <Button key={t.key} variant={filtro === t.key ? "default" : "outline"} size="sm"
+                    onClick={() => setFiltro(t.key)} className="text-xs">
+                    {t.label}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Buscar lançamento..." value={busca} onChange={e => setBusca(e.target.value)}
+                  className="pl-9" />
+              </div>
+
               {grouped.length === 0 ? (
-                <p className="text-muted-foreground text-sm text-center py-8">Nenhum lançamento neste mês.</p>
+                <p className="text-muted-foreground text-sm text-center py-8">Nenhum lançamento encontrado.</p>
               ) : (
                 <div className="space-y-4">
                   {grouped.map(([date, items]) => (
@@ -333,30 +350,33 @@ const Dashboard = () => {
                         {date === dateHelper.hojeStr() ? "📌 HOJE — " : ""}{dateHelper.formatarDataCompleta(date)}
                       </p>
                       <div className="space-y-1">
-                        {items.map((l: any) => (
-                          <div key={l.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-accent/50 transition-colors">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <span className="text-base shrink-0">{l.contas?.icone || "💰"}</span>
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                  <p className="font-medium text-sm truncate">{l.descricao}</p>
-                                  {l.observacoes?.includes("🔄 Fixa:") && (
-                                    <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">🔄</span>
-                                  )}
+                        {items.map((l: any) => {
+                          const st = getStatusInfo(l);
+                          return (
+                            <div key={l.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-accent/50 transition-colors">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <span className="text-base shrink-0">{l.contas?.icone || "💰"}</span>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <p className="font-medium text-sm truncate">{l.descricao}</p>
+                                    {l.observacoes?.includes("🔄 Fixa:") && (
+                                      <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">🔄</span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">{l.categorias?.nome} · {l.contas?.nome || ""}</p>
                                 </div>
-                                <p className="text-xs text-muted-foreground">{l.categorias?.nome} · {l.contas?.nome || ""}</p>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className={`font-semibold text-sm ${l.tipo === "receita" ? "text-success" : "text-destructive"}`}>
+                                  {l.tipo === "receita" ? "+" : "-"}{formatCurrency(Number(l.valor))}
+                                </span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${st.cls}`}>
+                                  {st.emoji} {st.label}
+                                </span>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className={`font-semibold text-sm ${l.tipo === "receita" ? "text-success" : "text-destructive"}`}>
-                                {l.tipo === "receita" ? "+" : "-"}{formatCurrency(Number(l.valor))}
-                              </span>
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${l.status === "pago" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
-                                {l.status === "pago" ? "✅" : "⏳"}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
