@@ -5,7 +5,7 @@ import DashboardLayout from "@/components/shared/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
-import { TrendingUp, TrendingDown, Wallet, Target, ChevronLeft, ChevronRight, Plus, Minus, AlertTriangle, RefreshCw, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Target, ChevronLeft, ChevronRight, Plus, Minus, AlertTriangle, RefreshCw, BarChart3, Search } from "lucide-react";
 import { dateHelper } from "@/lib/dateHelper";
 import { gerarFixasParaMes } from "@/lib/gerarFixas";
 import { useNavigate } from "react-router-dom";
