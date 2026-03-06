@@ -84,7 +84,7 @@ export default function LancamentosLista({
       descricao: l.descricao, valor: String(l.valor), tipo: l.tipo, conta_id: l.conta_id,
       categoria_id: l.categoria_id || "", data_vencimento: l.data_vencimento,
       data_pagamento: l.data_pagamento || "", jaPago: l.status === "pago",
-      observacoes: l.observacoes || "",
+      observacoes: l.observacoes || "", tipo_recebimento_id: l.tipo_recebimento_id || "",
     });
     setOpen(true);
   };
