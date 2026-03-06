@@ -51,7 +51,6 @@ const Dashboard = () => {
     if (l) setLancamentos(l);
     if (c) setContas(c);
     if (cat) setCategorias(cat);
-    if (all) setAllLancamentos(all);
   };
 
   useEffect(() => {
