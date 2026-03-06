@@ -41,6 +41,8 @@ const Dashboard = () => {
   const [contas, setContas] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
   const [alertDismissed, setAlertDismissed] = useState(false);
+  const [filtro, setFiltro] = useState<Filtro>("todos");
+  const [busca, setBusca] = useState("");
 
   const { ano: anoAtual, mes: mesAtual } = dateHelper.mesAnoAtual();
   const [mesView, setMesView] = useState(mesAtual);
