@@ -75,10 +75,8 @@ const Dashboard = () => {
     const aReceber = receitasPendentes.reduce((acc, l) => acc + Number(l.valor), 0);
     const aPagar = despesasPendentes.reduce((acc, l) => acc + Number(l.valor), 0);
     const totalContas = contas.reduce((acc, c) => acc + Number(c.saldo_inicial || 0), 0);
-    const receitasMes = lancamentos.filter(l => l.tipo === "receita").reduce((acc, l) => acc + Number(l.valor), 0);
-    const despesasMes = lancamentos.filter(l => l.tipo === "despesa").reduce((acc, l) => acc + Number(l.valor), 0);
-    const projecao = totalContas + receitasMes - despesasMes;
-    return { aReceber, aPagar, totalContas, projecao, countReceitas: receitasPendentes.length, countDespesas: despesasPendentes.length, despesasMes };
+    const projecao = totalContas - aPagar; // PROJEÇÃO = TOTAL EM CONTAS - A PAGAR
+    return { aReceber, aPagar, totalContas, projecao, countReceitas: receitasPendentes.length, countDespesas: despesasPendentes.length };
   }, [lancamentos, contas]);
 
   const projecoes = useMemo(() => {
@@ -88,11 +86,9 @@ const Dashboard = () => {
       const target = new Date();
       target.setDate(target.getDate() + dias);
       const targetStr = dateHelper.criarDataSegura(target.getFullYear(), target.getMonth() + 1, target.getDate());
-      const receitas = allLancamentos.filter(l => l.tipo === "receita" && l.data_vencimento >= hoje && l.data_vencimento <= targetStr)
+      const aPagar = allLancamentos.filter(l => l.tipo === "despesa" && l.status !== "pago" && l.data_vencimento >= hoje && l.data_vencimento <= targetStr)
         .reduce((acc, l) => acc + Number(l.valor), 0);
-      const despesas = allLancamentos.filter(l => l.tipo === "despesa" && l.data_vencimento >= hoje && l.data_vencimento <= targetStr)
-        .reduce((acc, l) => acc + Number(l.valor), 0);
-      return totalContas + receitas - despesas;
+      return totalContas - aPagar;
     };
     return { d30: calcProj(30), d60: calcProj(60), d90: calcProj(90) };
   }, [allLancamentos, contas]);
@@ -135,7 +131,7 @@ const Dashboard = () => {
               <div className="flex-1">
                 <h4 className="font-bold text-destructive text-sm">🚨 ATENÇÃO: PROJEÇÃO NEGATIVA</h4>
                 <p className="text-xs text-destructive/80 mt-1">
-                  Seu saldo de {formatCurrency(resumo.totalContas)} não será suficiente para as despesas de {formatCurrency(resumo.despesasMes)} deste mês.
+                  Seu saldo de {formatCurrency(resumo.totalContas)} não é suficiente para cobrir {formatCurrency(resumo.aPagar)} a pagar.
                 </p>
                 <p className="text-xs font-semibold text-destructive mt-1">
                   🔴 Déficit projetado: {formatCurrency(Math.abs(resumo.projecao))}
