@@ -38,6 +38,7 @@ interface LancamentosListaProps {
   lancamentos: any[];
   contas: any[];
   categorias: any[];
+  tiposRecebimento: any[];
   mesView: number;
   anoView: number;
   onMesAnterior: () => void;
