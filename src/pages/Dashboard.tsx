@@ -77,7 +77,7 @@ const Dashboard = () => {
     const totalContas = contas.reduce((acc, c) => acc + Number(c.saldo_inicial || 0), 0);
     const receitasMes = lancamentos.filter(l => l.tipo === "receita").reduce((acc, l) => acc + Number(l.valor), 0);
     const despesasMes = lancamentos.filter(l => l.tipo === "despesa").reduce((acc, l) => acc + Number(l.valor), 0);
-    const projecao = totalContas - despesasMes;
+    const projecao = totalContas + receitasMes - despesasMes;
     return { aReceber, aPagar, totalContas, projecao, countReceitas: receitasPendentes.length, countDespesas: despesasPendentes.length, despesasMes };
   }, [lancamentos, contas]);
 
@@ -88,9 +88,11 @@ const Dashboard = () => {
       const target = new Date();
       target.setDate(target.getDate() + dias);
       const targetStr = dateHelper.criarDataSegura(target.getFullYear(), target.getMonth() + 1, target.getDate());
+      const receitas = allLancamentos.filter(l => l.tipo === "receita" && l.data_vencimento >= hoje && l.data_vencimento <= targetStr)
+        .reduce((acc, l) => acc + Number(l.valor), 0);
       const despesas = allLancamentos.filter(l => l.tipo === "despesa" && l.data_vencimento >= hoje && l.data_vencimento <= targetStr)
         .reduce((acc, l) => acc + Number(l.valor), 0);
-      return totalContas - despesas;
+      return totalContas + receitas - despesas;
     };
     return { d30: calcProj(30), d60: calcProj(60), d90: calcProj(90) };
   }, [allLancamentos, contas]);
@@ -188,7 +190,7 @@ const Dashboard = () => {
               <div className={`text-lg font-bold ${resumo.projecao >= 0 ? "text-success" : "text-destructive"}`}>
                 {formatCurrency(resumo.projecao)}
               </div>
-              <p className="text-xs text-muted-foreground">Contas − Despesas do mês</p>
+              <p className="text-xs text-muted-foreground">Previsão do mês</p>
             </CardContent>
           </Card>
         </div>
