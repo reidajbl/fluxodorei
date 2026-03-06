@@ -221,6 +221,7 @@ export default function LancamentosLista({
                 <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
                 <SelectContent>{tiposRecebimento.map(t => <SelectItem key={t.id} value={t.id}>{t.icone} {t.nome}</SelectItem>)}</SelectContent>
               </Select>
+            </div>
             <div className="flex items-center gap-2">
               <Checkbox id="jaPago" checked={form.jaPago} onCheckedChange={v => setForm({ ...form, jaPago: !!v, data_pagamento: v ? hoje : "" })} />
               <Label htmlFor="jaPago" className="cursor-pointer">Já foi pago/recebido?</Label>
