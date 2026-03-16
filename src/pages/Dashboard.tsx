@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp, TrendingDown, Wallet, Target, ChevronLeft, ChevronRight, Plus, Minus, AlertTriangle, RefreshCw, Search } from "lucide-react";
 import { dateHelper } from "@/lib/dateHelper";
 import { gerarFixasParaMes } from "@/lib/gerarFixas";
@@ -34,6 +35,7 @@ const Dashboard = () => {
   const [allLancamentos, setAllLancamentos] = useState<any[]>([]);
   const [contas, setContas] = useState<any[]>([]);
   const [alertDismissed, setAlertDismissed] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [busca, setBusca] = useState("");
 
@@ -76,8 +78,10 @@ const Dashboard = () => {
 
   const refetchAll = useCallback(async () => {
     if (!user) return;
+    setLoading(true);
     await gerarFixasParaMes(anoView, mesView);
     await refetch();
+    setLoading(false);
   }, [user, mesView, anoView]);
 
   useEffect(() => { refetchAll(); }, [refetchAll, updateTrigger]);
@@ -213,7 +217,7 @@ const Dashboard = () => {
                 <span className="text-xs font-medium text-muted-foreground uppercase">💰 A Receber</span>
                 <TrendingUp className="h-3.5 w-3.5 text-success" />
               </div>
-              <div className="text-base font-bold text-success">{formatCurrency(resumo.aReceber)}</div>
+              {loading ? <Skeleton className="h-6 w-24" /> : <div className="text-base font-bold text-success">{formatCurrency(resumo.aReceber)}</div>}
             </CardContent>
           </Card>
           <Card className="bg-destructive/5 border-destructive/20">
@@ -222,7 +226,7 @@ const Dashboard = () => {
                 <span className="text-xs font-medium text-muted-foreground uppercase">💸 A Pagar</span>
                 <TrendingDown className="h-3.5 w-3.5 text-destructive" />
               </div>
-              <div className="text-base font-bold text-destructive">{formatCurrency(resumo.aPagar)}</div>
+              {loading ? <Skeleton className="h-6 w-24" /> : <div className="text-base font-bold text-destructive">{formatCurrency(resumo.aPagar)}</div>}
             </CardContent>
           </Card>
           <Card className="bg-info/5 border-info/20">
@@ -231,9 +235,11 @@ const Dashboard = () => {
                 <span className="text-xs font-medium text-muted-foreground uppercase">💰 Total Contas</span>
                 <Wallet className="h-3.5 w-3.5 text-info" />
               </div>
-              <div className={`text-base font-bold ${resumo.totalContas >= 0 ? "text-success" : "text-destructive"}`}>
-                {formatCurrency(resumo.totalContas)}
-              </div>
+              {loading ? <Skeleton className="h-6 w-24" /> : (
+                <div className={`text-base font-bold ${resumo.totalContas >= 0 ? "text-success" : "text-destructive"}`}>
+                  {formatCurrency(resumo.totalContas)}
+                </div>
+              )}
             </CardContent>
           </Card>
           <Card className={`${resumo.projecao >= 0 ? "bg-success/5 border-success/20" : "bg-destructive/5 border-destructive/20"}`}>
@@ -242,25 +248,34 @@ const Dashboard = () => {
                 <span className="text-xs font-medium text-muted-foreground uppercase">🔮 Projeção</span>
                 <Target className="h-3.5 w-3.5 text-warning" />
               </div>
-              <div className={`text-base font-bold ${resumo.projecao >= 0 ? "text-success" : "text-destructive"}`}>
-                {formatCurrency(resumo.projecao)}
-              </div>
+              {loading ? <Skeleton className="h-6 w-24" /> : (
+                <div className={`text-base font-bold ${resumo.projecao >= 0 ? "text-success" : "text-destructive"}`}>
+                  {formatCurrency(resumo.projecao)}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Saldo por Conta - compact */}
-        <div className="flex flex-wrap gap-2">
-          {Object.values(saldoRealPorConta).map((conta) => (
-            <div key={conta.nome} className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg text-sm">
-              <span>{conta.icone}</span>
-              <span className="font-medium">{conta.nome}</span>
-              <span className={`font-bold ${conta.saldo >= 0 ? "text-success" : "text-destructive"}`}>
-                {formatCurrency(conta.saldo)}
-              </span>
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex flex-wrap gap-2">
+            <Skeleton className="h-8 w-40 rounded-lg" />
+            <Skeleton className="h-8 w-36 rounded-lg" />
+            <Skeleton className="h-8 w-44 rounded-lg" />
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {Object.values(saldoRealPorConta).map((conta) => (
+              <div key={conta.nome} className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg text-sm">
+                <span>{conta.icone}</span>
+                <span className="font-medium">{conta.nome}</span>
+                <span className={`font-bold ${conta.saldo >= 0 ? "text-success" : "text-destructive"}`}>
+                  {formatCurrency(conta.saldo)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Action buttons + Tabs + Search */}
         <div className="flex flex-wrap items-center gap-2">
