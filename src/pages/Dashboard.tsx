@@ -87,10 +87,10 @@ const Dashboard = () => {
     await refetch();
   }, [user, mesView, anoView]);
 
-  // Initial fetch + on month change
+  // Initial fetch + on month change + on global update trigger
   useEffect(() => {
     refetchAll();
-  }, [refetchAll]);
+  }, [refetchAll, updateTrigger]);
 
   // Realtime subscription for lancamentos changes
   useEffect(() => {
