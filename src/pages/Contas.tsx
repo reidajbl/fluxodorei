@@ -23,6 +23,7 @@ const TIPOS = [
 
 const Contas = () => {
   const { user } = useAuth();
+  const { forceUpdate } = useDashboard();
   const [contas, setContas] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
