@@ -3,25 +3,47 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/shared/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
-import { TrendingUp, TrendingDown, Wallet, Target, AlertTriangle, RefreshCw, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Target, ChevronLeft, ChevronRight, Plus, Minus, AlertTriangle, RefreshCw, BarChart3, Search } from "lucide-react";
 import { dateHelper } from "@/lib/dateHelper";
 import { gerarFixasParaMes } from "@/lib/gerarFixas";
 import { useNavigate } from "react-router-dom";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import LancamentosLista, { getStatusInfo } from "@/components/LancamentosLista";
 
 const PIE_COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"];
+
+type Filtro = "todos" | "a_vencer" | "vencidos" | "pagos" | "recebidos";
+
+const TABS: { key: Filtro; label: string }[] = [
+  { key: "todos", label: "Todos" },
+  { key: "a_vencer", label: "A Vencer" },
+  { key: "vencidos", label: "Vencidos" },
+  { key: "pagos", label: "Pagos" },
+  { key: "recebidos", label: "Recebidos" },
+];
+
+function getStatusInfo(l: any) {
+  const hoje = dateHelper.hojeStr();
+  if (l.status === "pago" || l.data_pagamento) {
+    if (l.tipo === "receita") return { label: "RECEBIDO", emoji: "✅", cls: "bg-success/10 text-success" };
+    return { label: "PAGO", emoji: "✅", cls: "bg-success/10 text-success" };
+  }
+  if (l.data_vencimento < hoje) return { label: "VENCIDO", emoji: "🔴", cls: "bg-destructive/10 text-destructive" };
+  return { label: "A VENCER", emoji: "🟡", cls: "bg-warning/10 text-warning" };
+}
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [lancamentos, setLancamentos] = useState<any[]>([]);
+  const [allLancamentos, setAllLancamentos] = useState<any[]>([]);
   const [contas, setContas] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
-  const [tiposRecebimento, setTiposRecebimento] = useState<any[]>([]);
   const [alertDismissed, setAlertDismissed] = useState(false);
+  const [filtro, setFiltro] = useState<Filtro>("todos");
+  const [busca, setBusca] = useState("");
 
   const { ano: anoAtual, mes: mesAtual } = dateHelper.mesAnoAtual();
   const [mesView, setMesView] = useState(mesAtual);
@@ -42,18 +64,19 @@ const Dashboard = () => {
   const refetch = async () => {
     const inicio = dateHelper.primeiroDiaMes(anoView, mesView);
     const fim = dateHelper.ultimoDiaMes(anoView, mesView);
-    const [{ data: l }, { data: c }, { data: cat }, { data: tr }] = await Promise.all([
-      supabase.from("lancamentos").select("*, categorias(nome, cor), contas(nome, icone), tipos_recebimento(nome, icone)")
+    const [{ data: l }, { data: c }, { data: cat }, { data: all }] = await Promise.all([
+      supabase.from("lancamentos").select("*, categorias(nome, cor), contas(nome, icone)")
         .gte("data_vencimento", inicio).lte("data_vencimento", fim)
         .order("data_vencimento", { ascending: false }),
       supabase.from("contas").select("*").eq("ativo", true),
       supabase.from("categorias").select("*"),
-      supabase.from("tipos_recebimento").select("*").order("nome"),
+      supabase.from("lancamentos").select("*, categorias(nome, cor)")
+        .order("data_vencimento", { ascending: true }),
     ]);
     if (l) setLancamentos(l);
     if (c) setContas(c);
     if (cat) setCategorias(cat);
-    if (tr) setTiposRecebimento(tr);
+    if (all) setAllLancamentos(all);
   };
 
   useEffect(() => {
@@ -74,17 +97,85 @@ const Dashboard = () => {
     const aReceber = receitasPendentes.reduce((acc, l) => acc + Number(l.valor), 0);
     const aPagar = despesasPendentes.reduce((acc, l) => acc + Number(l.valor), 0);
     const totalContas = contas.reduce((acc, c) => acc + Number(c.saldo_inicial || 0), 0);
-    const projecao = totalContas - aPagar; // PROJEÇÃO = TOTAL EM CONTAS - A PAGAR
-    return { aReceber, aPagar, totalContas, projecao, countReceitas: receitasPendentes.length, countDespesas: despesasPendentes.length };
+    const receitasMes = lancamentos.filter(l => l.tipo === "receita").reduce((acc, l) => acc + Number(l.valor), 0);
+    const despesasMes = lancamentos.filter(l => l.tipo === "despesa").reduce((acc, l) => acc + Number(l.valor), 0);
+    const projecao = totalContas + receitasMes - despesasMes;
+    return {
+      aReceber, aPagar, totalContas, projecao,
+      countReceitas: receitasPendentes.length,
+      countDespesas: despesasPendentes.length,
+      despesasMes,
+    };
   }, [lancamentos, contas]);
 
+  // Projections 30/60/90 days
+  const projecoes = useMemo(() => {
+    const hoje = dateHelper.hojeStr();
+    const totalContas = contas.reduce((acc, c) => acc + Number(c.saldo_inicial || 0), 0);
+    const calcProj = (dias: number) => {
+      const target = new Date();
+      target.setDate(target.getDate() + dias);
+      const targetStr = dateHelper.criarDataSegura(target.getFullYear(), target.getMonth() + 1, target.getDate());
+      const receitas = allLancamentos.filter(l => l.tipo === "receita" && l.data_vencimento >= hoje && l.data_vencimento <= targetStr)
+        .reduce((acc, l) => acc + Number(l.valor), 0);
+      const despesas = allLancamentos.filter(l => l.tipo === "despesa" && l.data_vencimento >= hoje && l.data_vencimento <= targetStr)
+        .reduce((acc, l) => acc + Number(l.valor), 0);
+      return totalContas + receitas - despesas;
+    };
+    return { d30: calcProj(30), d60: calcProj(60), d90: calcProj(90) };
+  }, [allLancamentos, contas]);
 
+  // Top 5 expenses
+  const topDespesas = useMemo(() => {
+    const despesas = lancamentos.filter(l => l.tipo === "despesa").sort((a, b) => Number(b.valor) - Number(a.valor)).slice(0, 5);
+    const total = lancamentos.filter(l => l.tipo === "despesa").reduce((acc, l) => acc + Number(l.valor), 0);
+    return despesas.map(d => ({ ...d, pct: total > 0 ? (Number(d.valor) / total) * 100 : 0 }));
+  }, [lancamentos]);
+
+  // Apply filters (same logic as Lancamentos page)
+  const filtered = useMemo(() => {
+    return lancamentos.filter(l => {
+      if (busca && !l.descricao.toLowerCase().includes(busca.toLowerCase())) return false;
+      const status = getStatusInfo(l);
+      if (filtro === "a_vencer") return status.label === "A VENCER";
+      if (filtro === "vencidos") return status.label === "VENCIDO";
+      if (filtro === "pagos") return l.tipo === "despesa" && status.label === "PAGO";
+      if (filtro === "recebidos") return l.tipo === "receita" && status.label === "RECEBIDO";
+      return true;
+    });
+  }, [lancamentos, filtro, busca]);
+
+  // Group filtered lancamentos by date
+  const grouped = useMemo(() => {
+    const groups: Record<string, any[]> = {};
+    filtered.forEach(l => {
+      const d = l.data_vencimento;
+      if (!groups[d]) groups[d] = [];
+      groups[d].push(l);
+    });
+    return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
+  }, [filtered]);
+
+  // Category pie data
   const categoryPieData = useMemo(() => {
     const cats: Record<string, { nome: string; valor: number; cor: string }> = {};
     lancamentos.filter(l => l.tipo === "despesa").forEach(l => {
       const name = l.categorias?.nome || "Outros";
       const cor = l.categorias?.cor || "#6b7280";
       if (!cats[name]) cats[name] = { nome: name, valor: 0, cor };
+      cats[name].valor += Number(l.valor);
+    });
+    const arr = Object.values(cats).sort((a, b) => b.valor - a.valor);
+    const total = arr.reduce((s, c) => s + c.valor, 0);
+    return arr.map(c => ({ ...c, pct: total > 0 ? (c.valor / total) * 100 : 0 }));
+  }, [lancamentos]);
+
+  // Category breakdown for receitas
+  const receitaCats = useMemo(() => {
+    const cats: Record<string, { nome: string; valor: number }> = {};
+    lancamentos.filter(l => l.tipo === "receita").forEach(l => {
+      const name = l.categorias?.nome || "Outros";
+      if (!cats[name]) cats[name] = { nome: name, valor: 0 };
       cats[name].valor += Number(l.valor);
     });
     const arr = Object.values(cats).sort((a, b) => b.valor - a.valor);
@@ -103,6 +194,13 @@ const Dashboard = () => {
           <h1 className="text-xl font-bold text-center">FLUXO REI DA JBL</h1>
           <p className="text-sm text-muted-foreground text-center">Controle financeiro simples</p>
           <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="icon" onClick={mesAnterior}><ChevronLeft className="h-4 w-4" /></Button>
+              <Button variant="outline" onClick={mesAtualBtn} className="min-w-[140px]">
+                {dateHelper.nomeMes(mesView)} {anoView}
+              </Button>
+              <Button variant="outline" size="icon" onClick={mesProximo}><ChevronRight className="h-4 w-4" /></Button>
+            </div>
             <div className="text-xs text-muted-foreground">
               {dateHelper.formatarParaExibicao(inicio)} — {dateHelper.formatarParaExibicao(fim)}
             </div>
@@ -117,7 +215,7 @@ const Dashboard = () => {
               <div className="flex-1">
                 <h4 className="font-bold text-destructive text-sm">🚨 ATENÇÃO: PROJEÇÃO NEGATIVA</h4>
                 <p className="text-xs text-destructive/80 mt-1">
-                  Seu saldo de {formatCurrency(resumo.totalContas)} não é suficiente para cobrir {formatCurrency(resumo.aPagar)} a pagar.
+                  Seu saldo de {formatCurrency(resumo.totalContas)} não será suficiente para as despesas de {formatCurrency(resumo.despesasMes)} deste mês.
                 </p>
                 <p className="text-xs font-semibold text-destructive mt-1">
                   🔴 Déficit projetado: {formatCurrency(Math.abs(resumo.projecao))}
@@ -179,6 +277,12 @@ const Dashboard = () => {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-3">
+          <Button className="bg-success hover:bg-success/90 text-success-foreground" onClick={() => navigate("/lancamentos")}>
+            <Plus className="h-4 w-4 mr-2" />Receita
+          </Button>
+          <Button variant="destructive" onClick={() => navigate("/lancamentos")}>
+            <Minus className="h-4 w-4 mr-2" />Despesa
+          </Button>
           <Button variant="outline" onClick={() => navigate("/despesas-fixas")}>
             <RefreshCw className="h-4 w-4 mr-2" />Fixas
           </Button>
@@ -187,28 +291,104 @@ const Dashboard = () => {
           </Button>
         </div>
 
+        {/* Projections 30/60/90 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">📈 Projeções Futuras</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { label: "30 dias", value: projecoes.d30 },
+                { label: "60 dias", value: projecoes.d60 },
+                { label: "90 dias", value: projecoes.d90 },
+              ].map(p => (
+                <div key={p.label} className="text-center p-3 bg-muted/50 rounded-lg">
+                  <p className="text-xs text-muted-foreground uppercase">{p.label}</p>
+                  <p className={`text-lg font-bold ${p.value >= 0 ? "text-success" : "text-destructive"}`}>
+                    {formatCurrency(p.value)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Main grid: Lancamentos + Sidebar */}
+          {/* Main grid: Lancamentos + Sidebar */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Lancamentos - SAME component as Lancamentos page */}
-          <div className="lg:col-span-2">
-            <LancamentosLista
-              lancamentos={lancamentos}
-              contas={contas}
-              categorias={categorias}
-              tiposRecebimento={tiposRecebimento}
-              mesView={mesView}
-              anoView={anoView}
-              onMesAnterior={mesAnterior}
-              onMesProximo={mesProximo}
-              onMesAtual={mesAtualBtn}
-              onRefresh={refetch}
-              showNewButtons={true}
-            />
-          </div>
+          {/* Lancamentos grouped by date */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-base">
+                📋 Lançamentos — {dateHelper.nomeMes(mesView)} {anoView}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Tabs */}
+              <div className="flex flex-wrap gap-1.5">
+                {TABS.map(t => (
+                  <Button key={t.key} variant={filtro === t.key ? "default" : "outline"} size="sm"
+                    onClick={() => setFiltro(t.key)} className="text-xs">
+                    {t.label}
+                  </Button>
+                ))}
+              </div>
 
-          {/* Sidebar: Category chart */}
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Buscar lançamento..." value={busca} onChange={e => setBusca(e.target.value)}
+                  className="pl-9" />
+              </div>
+
+              {grouped.length === 0 ? (
+                <p className="text-muted-foreground text-sm text-center py-8">Nenhum lançamento encontrado.</p>
+              ) : (
+                <div className="space-y-4">
+                  {grouped.map(([date, items]) => (
+                    <div key={date}>
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">
+                        {date === dateHelper.hojeStr() ? "📌 HOJE — " : ""}{dateHelper.formatarDataCompleta(date)}
+                      </p>
+                      <div className="space-y-1">
+                        {items.map((l: any) => {
+                          const st = getStatusInfo(l);
+                          return (
+                            <div key={l.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-accent/50 transition-colors">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <span className="text-base shrink-0">{l.contas?.icone || "💰"}</span>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <p className="font-medium text-sm truncate">{l.descricao}</p>
+                                    {l.observacoes?.includes("🔄 Fixa:") && (
+                                      <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">🔄</span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">{l.categorias?.nome} · {l.contas?.nome || ""}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className={`font-semibold text-sm ${l.tipo === "receita" ? "text-success" : "text-destructive"}`}>
+                                  {l.tipo === "receita" ? "+" : "-"}{formatCurrency(Number(l.valor))}
+                                </span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${st.cls}`}>
+                                  {st.emoji} {st.label}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Sidebar: Category charts + Top 5 */}
           <div className="space-y-6">
+            {/* Pie chart despesas */}
             {categoryPieData.length > 0 && (
               <Card>
                 <CardHeader>
@@ -239,6 +419,51 @@ const Dashboard = () => {
                       </div>
                     ))}
                   </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Receitas breakdown */}
+            {receitaCats.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base text-success">💰 Receitas por Categoria</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {receitaCats.map(c => (
+                    <div key={c.nome}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="truncate">{c.nome}</span>
+                        <span className="text-muted-foreground">{c.pct.toFixed(1)}%</span>
+                      </div>
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="h-full bg-success rounded-full transition-all" style={{ width: `${c.pct}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Top 5 expenses */}
+            {topDespesas.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">🔝 Top 5 Despesas</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {topDespesas.map((d, i) => (
+                    <div key={d.id}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="truncate">{i + 1}. {d.descricao}</span>
+                        <span className="font-medium">{formatCurrency(Number(d.valor))}</span>
+                      </div>
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="h-full bg-destructive rounded-full transition-all" style={{ width: `${d.pct}%` }} />
+                      </div>
+                      <p className="text-xs text-muted-foreground">{d.pct.toFixed(1)}% do total</p>
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
             )}
