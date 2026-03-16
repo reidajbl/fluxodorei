@@ -12,6 +12,7 @@ import { toast } from "@/components/ui/sonner";
 import { Settings } from "lucide-react";
 import { dateHelper } from "@/lib/dateHelper";
 import GerenciarCategorias from "@/components/GerenciarCategorias";
+import { registrarLog } from "@/lib/logger";
 
 interface LancamentoFormDialogProps {
   open: boolean;
