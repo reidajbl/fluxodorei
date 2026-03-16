@@ -114,13 +114,26 @@ const Dashboard = () => {
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
+  // Saldo real por conta: saldo_inicial + receitas pagas - despesas pagas
+  const saldoRealPorConta = useMemo(() => {
+    const result: Record<string, { nome: string; saldo: number; icone: string; cor: string }> = {};
+    for (const conta of contas) {
+      let saldo = Number(conta.saldo_inicial || 0);
+      const lancConta = allLancamentos.filter(l => l.conta_id === conta.id && l.status === "pago");
+      const receitas = lancConta.filter(l => l.tipo === "receita").reduce((acc, l) => acc + Number(l.valor), 0);
+      const despesas = lancConta.filter(l => l.tipo === "despesa").reduce((acc, l) => acc + Number(l.valor), 0);
+      saldo = saldo + receitas - despesas;
+      result[conta.id] = { nome: conta.nome, saldo, icone: conta.icone || "💰", cor: conta.cor || "#3b82f6" };
+    }
+    return result;
+  }, [contas, allLancamentos]);
+
   const resumo = useMemo(() => {
     const receitasPendentes = lancamentos.filter(l => l.tipo === "receita" && l.status !== "pago");
     const despesasPendentes = lancamentos.filter(l => l.tipo === "despesa" && l.status !== "pago");
     const aReceber = receitasPendentes.reduce((acc, l) => acc + Number(l.valor), 0);
     const aPagar = despesasPendentes.reduce((acc, l) => acc + Number(l.valor), 0);
-    const totalContas = contas.reduce((acc, c) => acc + Number(c.saldo_inicial || 0), 0);
-    const receitasMes = lancamentos.filter(l => l.tipo === "receita").reduce((acc, l) => acc + Number(l.valor), 0);
+    const totalContas = Object.values(saldoRealPorConta).reduce((acc, c) => acc + c.saldo, 0);
     const despesasMes = lancamentos.filter(l => l.tipo === "despesa").reduce((acc, l) => acc + Number(l.valor), 0);
     const projecao = totalContas - aPagar;
     return {
@@ -129,7 +142,7 @@ const Dashboard = () => {
       countDespesas: despesasPendentes.length,
       despesasMes,
     };
-  }, [lancamentos, contas]);
+  }, [lancamentos, saldoRealPorConta]);
 
   // Projections 30/60/90 days
   const projecoes = useMemo(() => {
