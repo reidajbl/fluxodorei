@@ -115,7 +115,7 @@ const Lancamentos = () => {
       ({ error } = await supabase.from("lancamentos").insert(payload));
     }
     if (error) toast.error("Erro ao salvar", { description: error.message });
-    else { toast.success(editingId ? "Atualizado!" : "Criado!"); setOpen(false); resetForm(); fetchData(); }
+    else { toast.success(editingId ? "Atualizado!" : "Criado!"); setOpen(false); resetForm(); fetchData(); forceUpdate(); }
   };
 
   const handleDelete = async (id: string) => {
