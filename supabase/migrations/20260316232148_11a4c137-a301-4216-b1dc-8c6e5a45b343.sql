@@ -1,0 +1,1 @@
+ALTER TABLE public.contas ADD COLUMN IF NOT EXISTS ultima_alteracao_saldo DATE DEFAULT CURRENT_DATE;
