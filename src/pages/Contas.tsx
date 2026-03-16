@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "@/components/ui/sonner";
 import { Plus, Trash2, Edit2 } from "lucide-react";
 import { registrarLog } from "@/lib/logger";
+import { useDashboard } from "@/contexts/DashboardContext";
 
 const ICONES = ["💰", "🏦", "💳", "👛", "🪙", "💵", "📱"];
 const TIPOS = [
