@@ -35,6 +35,7 @@ const Dashboard = () => {
   const [allLancamentos, setAllLancamentos] = useState<any[]>([]);
   const [contas, setContas] = useState<any[]>([]);
   const [alertDismissed, setAlertDismissed] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [busca, setBusca] = useState("");
 
