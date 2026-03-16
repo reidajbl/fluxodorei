@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "@/components/ui/sonner";
 import { Plus, Trash2, Edit2 } from "lucide-react";
 import { registrarLog } from "@/lib/logger";
+import { useDashboard } from "@/contexts/DashboardContext";
 
 const ICONES = ["💰", "🏦", "💳", "👛", "🪙", "💵", "📱"];
 const TIPOS = [
@@ -22,6 +23,7 @@ const TIPOS = [
 
 const Contas = () => {
   const { user } = useAuth();
+  const { forceUpdate } = useDashboard();
   const [contas, setContas] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -81,6 +83,7 @@ const Contas = () => {
       setOpen(false);
       resetForm();
       fetchContas();
+      forceUpdate();
     }
   };
 
@@ -90,7 +93,7 @@ const Contas = () => {
     if (error) toast.error("Erro ao excluir", { description: error.message });
     else {
       if (conta) await registrarLog({ acao: "EXCLUIR", entidade: "CONTA", entidade_id: id, dados_antes: conta, descricao: `Conta '${conta.nome}' excluída` });
-      toast.success("Conta excluída!"); fetchContas();
+      toast.success("Conta excluída!"); fetchContas(); forceUpdate();
     }
   };
 
