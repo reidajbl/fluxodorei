@@ -37,6 +37,7 @@ function getStatusInfo(l: any) {
 
 const Lancamentos = () => {
   const { user } = useAuth();
+  const { forceUpdate } = useDashboard();
   const [lancamentos, setLancamentos] = useState<any[]>([]);
   const [contas, setContas] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
