@@ -221,6 +221,9 @@ const Dashboard = () => {
                 {dateHelper.nomeMes(mesView)} {anoView}
               </Button>
               <Button variant="outline" size="icon" onClick={mesProximo}><ChevronRight className="h-4 w-4" /></Button>
+              <Button variant="outline" size="sm" onClick={() => { refetchAll(); toast.success("Dashboard atualizado!"); }} className="ml-2">
+                <RefreshCw className="h-4 w-4 mr-1" /> Atualizar
+              </Button>
             </div>
             <div className="text-xs text-muted-foreground">
               {dateHelper.formatarParaExibicao(inicio)} — {dateHelper.formatarParaExibicao(fim)}
