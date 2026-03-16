@@ -83,6 +83,7 @@ const Contas = () => {
       setOpen(false);
       resetForm();
       fetchContas();
+      forceUpdate();
     }
   };
 
