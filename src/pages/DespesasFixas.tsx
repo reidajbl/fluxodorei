@@ -119,9 +119,13 @@ const DespesasFixas = () => {
   };
 
   const handleDelete = async (id: string) => {
+    const fixa = fixas.find(f => f.id === id);
     const { error } = await supabase.from("despesas_fixas").delete().eq("id", id);
     if (error) toast.error("Erro ao excluir");
-    else { toast.success("Excluída!"); fetchData(); }
+    else {
+      if (fixa) await registrarLog({ acao: "EXCLUIR", entidade: "DESPESA_FIXA", entidade_id: id, dados_antes: fixa, descricao: `Despesa fixa '${fixa.descricao}' excluída` });
+      toast.success("Excluída!"); fetchData();
+    }
   };
 
   const toggleAtivo = async (f: any) => {
