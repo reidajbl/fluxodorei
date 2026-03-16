@@ -37,6 +37,7 @@ function getStatusInfo(l: any) {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { updateTrigger, forceUpdate } = useDashboard();
   const navigate = useNavigate();
   const [lancamentos, setLancamentos] = useState<any[]>([]);
   const [allLancamentos, setAllLancamentos] = useState<any[]>([]);
