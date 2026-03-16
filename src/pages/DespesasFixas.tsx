@@ -102,6 +102,15 @@ const DespesasFixas = () => {
     if (error) {
       toast.error("Erro ao salvar", { description: error.message });
     } else {
+      const editingFixa = fixas.find(f => f.id === editingId);
+      await registrarLog({
+        acao: editingId ? "EDITAR" : "CRIAR", entidade: "DESPESA_FIXA",
+        entidade_id: editingId || undefined,
+        dados_antes: editingFixa || null, dados_depois: payload,
+        descricao: editingId
+          ? `Despesa fixa '${payload.descricao}' editada`
+          : `Despesa fixa '${payload.descricao}' de R$ ${payload.valor}/mês criada`,
+      });
       toast.success(editingId ? "Atualizada!" : "Despesa fixa criada!");
       setOpen(false);
       resetForm();
