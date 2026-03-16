@@ -175,12 +175,14 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-screen overflow-hidden -m-4 md:-m-6 lg:-m-8 p-4 md:p-6 lg:p-8">
+        {/* Fixed top section */}
+        <div className="flex-none space-y-4 overflow-hidden">
         {/* Header */}
-        <div className="bg-card rounded-xl border border-border p-6">
+        <div className="bg-card rounded-xl border border-border p-4">
           <h1 className="text-xl font-bold text-center">FLUXO REI DA JBL</h1>
           <p className="text-sm text-muted-foreground text-center">Controle financeiro simples</p>
-          <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="mt-3 flex flex-col sm:flex-row items-center justify-center gap-2">
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon" onClick={mesAnterior}><ChevronLeft className="h-4 w-4" /></Button>
               <Button variant="outline" onClick={mesAtualBtn} className="min-w-[140px]">
@@ -199,102 +201,94 @@ const Dashboard = () => {
 
         {/* Negative projection alert */}
         {resumo.projecao < 0 && !alertDismissed && (
-          <div className="p-4 bg-destructive/10 border-l-4 border-destructive rounded-lg">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+          <div className="p-3 bg-destructive/10 border-l-4 border-destructive rounded-lg">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
               <div className="flex-1">
-                <h4 className="font-bold text-destructive text-sm">🚨 ATENÇÃO: PROJEÇÃO NEGATIVA</h4>
-                <p className="text-xs text-destructive/80 mt-1">
-                  Seu saldo de {formatCurrency(resumo.totalContas)} não será suficiente para as despesas de {formatCurrency(resumo.despesasMes)} deste mês.
-                </p>
-                <p className="text-xs font-semibold text-destructive mt-1">
-                  🔴 Déficit projetado: {formatCurrency(Math.abs(resumo.projecao))}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">💡 Reduza despesas ou antecipe receitas.</p>
+                <h4 className="font-bold text-destructive text-xs">🚨 PROJEÇÃO NEGATIVA — Déficit: {formatCurrency(Math.abs(resumo.projecao))}</h4>
               </div>
-              <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setAlertDismissed(true)}>✕</Button>
+              <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0" onClick={() => setAlertDismissed(true)}>✕</Button>
             </div>
           </div>
         )}
 
         {/* Summary Cards */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
           <Card className="bg-success/5 border-success/20">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground uppercase">💰 A Receber</CardTitle>
-              <TrendingUp className="h-4 w-4 text-success" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold text-success">{formatCurrency(resumo.aReceber)}</div>
-              <p className="text-xs text-muted-foreground">{resumo.countReceitas} receita(s) pendente(s)</p>
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-muted-foreground uppercase">💰 A Receber</span>
+                <TrendingUp className="h-3.5 w-3.5 text-success" />
+              </div>
+              <div className="text-base font-bold text-success">{formatCurrency(resumo.aReceber)}</div>
             </CardContent>
           </Card>
           <Card className="bg-destructive/5 border-destructive/20">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground uppercase">💸 A Pagar</CardTitle>
-              <TrendingDown className="h-4 w-4 text-destructive" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold text-destructive">{formatCurrency(resumo.aPagar)}</div>
-              <p className="text-xs text-muted-foreground">{resumo.countDespesas} despesa(s) pendente(s)</p>
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-muted-foreground uppercase">💸 A Pagar</span>
+                <TrendingDown className="h-3.5 w-3.5 text-destructive" />
+              </div>
+              <div className="text-base font-bold text-destructive">{formatCurrency(resumo.aPagar)}</div>
             </CardContent>
           </Card>
           <Card className="bg-info/5 border-info/20">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground uppercase">💰 Total em Contas</CardTitle>
-              <Wallet className="h-4 w-4 text-info" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-lg font-bold ${resumo.totalContas >= 0 ? "text-success" : "text-destructive"}`}>
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-muted-foreground uppercase">💰 Total Contas</span>
+                <Wallet className="h-3.5 w-3.5 text-info" />
+              </div>
+              <div className={`text-base font-bold ${resumo.totalContas >= 0 ? "text-success" : "text-destructive"}`}>
                 {formatCurrency(resumo.totalContas)}
               </div>
-              <p className="text-xs text-muted-foreground">Saldo real ({contas.length} conta(s))</p>
             </CardContent>
           </Card>
           <Card className={`${resumo.projecao >= 0 ? "bg-success/5 border-success/20" : "bg-destructive/5 border-destructive/20"}`}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground uppercase">🔮 Projeção</CardTitle>
-              <Target className="h-4 w-4 text-warning" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-lg font-bold ${resumo.projecao >= 0 ? "text-success" : "text-destructive"}`}>
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-muted-foreground uppercase">🔮 Projeção</span>
+                <Target className="h-3.5 w-3.5 text-warning" />
+              </div>
+              <div className={`text-base font-bold ${resumo.projecao >= 0 ? "text-success" : "text-destructive"}`}>
                 {formatCurrency(resumo.projecao)}
               </div>
-              <p className="text-xs text-muted-foreground">Previsão do mês</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Saldo por Conta */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">💰 Saldo por Conta</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {Object.values(saldoRealPorConta).map((conta) => (
-                <div key={conta.nome} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <span>{conta.icone}</span>
-                    <span className="font-medium text-sm">{conta.nome}</span>
-                  </div>
-                  <span className={`font-bold text-sm ${conta.saldo >= 0 ? "text-success" : "text-destructive"}`}>
-                    {formatCurrency(conta.saldo)}
-                  </span>
-                </div>
-              ))}
+        {/* Saldo por Conta - compact */}
+        <div className="flex flex-wrap gap-2">
+          {Object.values(saldoRealPorConta).map((conta) => (
+            <div key={conta.nome} className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg text-sm">
+              <span>{conta.icone}</span>
+              <span className="font-medium">{conta.nome}</span>
+              <span className={`font-bold ${conta.saldo >= 0 ? "text-success" : "text-destructive"}`}>
+                {formatCurrency(conta.saldo)}
+              </span>
             </div>
-          </CardContent>
-        </Card>
+          ))}
+        </div>
 
-        {/* Action buttons - open dialog directly */}
-        <div className="flex flex-wrap gap-3">
-          <Button className="bg-success hover:bg-success/90 text-success-foreground" onClick={() => openNew("receita")}>
-            <Plus className="h-4 w-4 mr-2" />Receita
+        {/* Action buttons + Tabs + Search */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" className="bg-success hover:bg-success/90 text-success-foreground" onClick={() => openNew("receita")}>
+            <Plus className="h-4 w-4 mr-1" />Receita
           </Button>
-          <Button variant="destructive" onClick={() => openNew("despesa")}>
-            <Minus className="h-4 w-4 mr-2" />Despesa
+          <Button size="sm" variant="destructive" onClick={() => openNew("despesa")}>
+            <Minus className="h-4 w-4 mr-1" />Despesa
           </Button>
+          <div className="h-5 w-px bg-border mx-1" />
+          {TABS.map(t => (
+            <Button key={t.key} variant={filtro === t.key ? "default" : "outline"} size="sm"
+              onClick={() => setFiltro(t.key)} className="text-xs h-7">
+              {t.label}
+            </Button>
+          ))}
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Buscar lançamento..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-9 h-8 text-sm" />
+        </div>
         </div>
 
         {/* Lancamento Form Dialog */}
@@ -306,121 +300,19 @@ const Dashboard = () => {
           onSaved={handleSaved}
         />
 
-        {/* Main grid: Lancamentos + Sidebar */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Lancamentos grouped by date */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="text-base">
-                📋 Lançamentos — {dateHelper.nomeMes(mesView)} {anoView}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Tabs */}
-              <div className="flex flex-wrap gap-1.5">
-                {TABS.map(t => (
-                  <Button key={t.key} variant={filtro === t.key ? "default" : "outline"} size="sm"
-                    onClick={() => setFiltro(t.key)} className="text-xs">
-                    {t.label}
-                  </Button>
-                ))}
-              </div>
-
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Buscar lançamento..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-9" />
-              </div>
-
-              {/* Shared list with edit/delete */}
-              <LancamentosList
-                lancamentos={lancamentos}
-                filtro={filtro}
-                busca={busca}
-                onEdit={openEdit}
-                onDeleted={handleSaved}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Sidebar: Category charts + Top 5 */}
-          <div className="space-y-6">
-            {categoryPieData.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">📊 Despesas por Categoria</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={180}>
-                    <PieChart>
-                      <Pie data={categoryPieData} cx="50%" cy="50%" outerRadius={70} dataKey="valor" nameKey="nome">
-                        {categoryPieData.map((entry, i) => (
-                          <Cell key={entry.nome} fill={entry.cor || PIE_COLORS[i % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="space-y-1.5 mt-2">
-                    {categoryPieData.map((c, i) => (
-                      <div key={c.nome} className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: c.cor || PIE_COLORS[i % PIE_COLORS.length] }} />
-                          <span className="truncate">{c.nome}</span>
-                        </div>
-                        <div className="flex gap-2 shrink-0">
-                          <span className="text-muted-foreground">{c.pct.toFixed(1)}%</span>
-                          <span className="font-medium">{formatCurrency(c.valor)}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {receitaCats.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base text-success">💰 Receitas por Categoria</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {receitaCats.map(c => (
-                    <div key={c.nome}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="truncate">{c.nome}</span>
-                        <span className="text-muted-foreground">{c.pct.toFixed(1)}%</span>
-                      </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div className="h-full bg-success rounded-full transition-all" style={{ width: `${c.pct}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-
-            {topDespesas.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">🔝 Top 5 Despesas</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {topDespesas.map((d, i) => (
-                    <div key={d.id}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="truncate">{i + 1}. {d.descricao}</span>
-                        <span className="font-medium">{formatCurrency(Number(d.valor))}</span>
-                      </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div className="h-full bg-destructive rounded-full transition-all" style={{ width: `${d.pct}%` }} />
-                      </div>
-                      <p className="text-xs text-muted-foreground">{d.pct.toFixed(1)}% do total</p>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
+        {/* Scrollable lancamentos area */}
+        <div className="flex-1 min-h-0 overflow-y-auto rounded-lg border border-border bg-card">
+          <div className="sticky top-0 bg-card z-10 px-4 py-2 border-b border-border">
+            <span className="text-sm font-semibold">📋 Lançamentos — {dateHelper.nomeMes(mesView)} {anoView}</span>
+          </div>
+          <div className="p-4">
+            <LancamentosList
+              lancamentos={lancamentos}
+              filtro={filtro}
+              busca={busca}
+              onEdit={openEdit}
+              onDeleted={handleSaved}
+            />
           </div>
         </div>
       </div>
