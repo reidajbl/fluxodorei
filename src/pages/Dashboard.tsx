@@ -13,6 +13,7 @@ import { gerarFixasParaMes } from "@/lib/gerarFixas";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import LancamentoFormDialog from "@/components/lancamentos/LancamentoFormDialog";
 import LancamentosList from "@/components/lancamentos/LancamentosList";
+import { calcularSaldoTodasContas } from "@/lib/saldoHelper";
 
 const PIE_COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"];
 
