@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { dateHelper } from "@/lib/dateHelper";
 import { toast } from "@/components/ui/sonner";
+import { registrarLog } from "@/lib/logger";
 
 export async function gerarFixasParaMes(ano: number, mes: number) {
   const { data: { user } } = await supabase.auth.getUser();
