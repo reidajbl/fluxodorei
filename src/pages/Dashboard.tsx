@@ -297,7 +297,7 @@ const Dashboard = () => {
               <div className={`text-lg font-bold ${resumo.totalContas >= 0 ? "text-success" : "text-destructive"}`}>
                 {formatCurrency(resumo.totalContas)}
               </div>
-              <p className="text-xs text-muted-foreground">{contas.length} conta(s) ativa(s)</p>
+              <p className="text-xs text-muted-foreground">Saldo real ({contas.length} conta(s))</p>
             </CardContent>
           </Card>
           <Card className={`${resumo.projecao >= 0 ? "bg-success/5 border-success/20" : "bg-destructive/5 border-destructive/20"}`}>
