@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDashboard } from "@/contexts/DashboardContext";
 import DashboardLayout from "@/components/shared/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,7 @@ function getStatusInfo(l: any) {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { updateTrigger, forceUpdate } = useDashboard();
   const navigate = useNavigate();
   const [lancamentos, setLancamentos] = useState<any[]>([]);
   const [allLancamentos, setAllLancamentos] = useState<any[]>([]);
@@ -85,10 +87,10 @@ const Dashboard = () => {
     await refetch();
   }, [user, mesView, anoView]);
 
-  // Initial fetch + on month change
+  // Initial fetch + on month change + on global update trigger
   useEffect(() => {
     refetchAll();
-  }, [refetchAll]);
+  }, [refetchAll, updateTrigger]);
 
   // Realtime subscription for lancamentos changes
   useEffect(() => {
@@ -221,7 +223,7 @@ const Dashboard = () => {
                 {dateHelper.nomeMes(mesView)} {anoView}
               </Button>
               <Button variant="outline" size="icon" onClick={mesProximo}><ChevronRight className="h-4 w-4" /></Button>
-              <Button variant="outline" size="sm" onClick={() => { refetchAll(); toast.success("Dashboard atualizado!"); }} className="ml-2">
+              <Button variant="outline" size="sm" onClick={() => { forceUpdate(); toast.success("Dashboard atualizado!"); }} className="ml-2">
                 <RefreshCw className="h-4 w-4 mr-1" /> Atualizar
               </Button>
             </div>

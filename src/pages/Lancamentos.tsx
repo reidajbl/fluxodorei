@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDashboard } from "@/contexts/DashboardContext";
 import DashboardLayout from "@/components/shared/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ function getStatusInfo(l: any) {
 
 const Lancamentos = () => {
   const { user } = useAuth();
+  const { forceUpdate } = useDashboard();
   const [lancamentos, setLancamentos] = useState<any[]>([]);
   const [contas, setContas] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
@@ -113,13 +115,13 @@ const Lancamentos = () => {
       ({ error } = await supabase.from("lancamentos").insert(payload));
     }
     if (error) toast.error("Erro ao salvar", { description: error.message });
-    else { toast.success(editingId ? "Atualizado!" : "Criado!"); setOpen(false); resetForm(); fetchData(); }
+    else { toast.success(editingId ? "Atualizado!" : "Criado!"); setOpen(false); resetForm(); fetchData(); forceUpdate(); }
   };
 
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from("lancamentos").delete().eq("id", id);
     if (error) toast.error("Erro ao excluir");
-    else { toast.success("Excluído!"); fetchData(); }
+    else { toast.success("Excluído!"); fetchData(); forceUpdate(); }
   };
 
   const formatCurrency = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
