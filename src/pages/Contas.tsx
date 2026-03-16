@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
 import { Plus, Trash2, Edit2 } from "lucide-react";
+import { registrarLog } from "@/lib/logger";
 
 const ICONES = ["💰", "🏦", "💳", "👛", "🪙", "💵", "📱"];
 const TIPOS = [
@@ -67,6 +68,15 @@ const Contas = () => {
 
     if (error) toast.error("Erro ao salvar conta", { description: error.message });
     else {
+      const editingConta = contas.find(c => c.id === editingId);
+      await registrarLog({
+        acao: editingId ? "ALTERAR_SALDO" : "CRIAR", entidade: "CONTA",
+        entidade_id: editingId || undefined,
+        dados_antes: editingConta || null, dados_depois: payload,
+        descricao: editingId
+          ? `Conta '${form.nome}' editada — saldo: R$ ${editingConta?.saldo_inicial} → R$ ${payload.saldo_inicial}`
+          : `Conta '${form.nome}' criada com saldo R$ ${payload.saldo_inicial}`,
+      });
       toast.success(editingId ? "Conta atualizada!" : "Conta criada!");
       setOpen(false);
       resetForm();
@@ -75,9 +85,13 @@ const Contas = () => {
   };
 
   const handleDelete = async (id: string) => {
+    const conta = contas.find(c => c.id === id);
     const { error } = await supabase.from("contas").delete().eq("id", id);
     if (error) toast.error("Erro ao excluir", { description: error.message });
-    else { toast.success("Conta excluída!"); fetchContas(); }
+    else {
+      if (conta) await registrarLog({ acao: "EXCLUIR", entidade: "CONTA", entidade_id: id, dados_antes: conta, descricao: `Conta '${conta.nome}' excluída` });
+      toast.success("Conta excluída!"); fetchContas();
+    }
   };
 
   const formatCurrency = (value: number) =>

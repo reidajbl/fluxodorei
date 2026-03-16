@@ -264,6 +264,45 @@ export type Database = {
           },
         ]
       }
+      logs_auditoria: {
+        Row: {
+          acao: string
+          created_at: string | null
+          dados_antes: Json | null
+          dados_depois: Json | null
+          descricao: string | null
+          entidade: string
+          entidade_id: string | null
+          id: string
+          user_agent: string | null
+          usuario_id: string
+        }
+        Insert: {
+          acao: string
+          created_at?: string | null
+          dados_antes?: Json | null
+          dados_depois?: Json | null
+          descricao?: string | null
+          entidade: string
+          entidade_id?: string | null
+          id?: string
+          user_agent?: string | null
+          usuario_id: string
+        }
+        Update: {
+          acao?: string
+          created_at?: string | null
+          dados_antes?: Json | null
+          dados_depois?: Json | null
+          descricao?: string | null
+          entidade?: string
+          entidade_id?: string | null
+          id?: string
+          user_agent?: string | null
+          usuario_id?: string
+        }
+        Relationships: []
+      }
       tipos_recebimento: {
         Row: {
           cor: string | null

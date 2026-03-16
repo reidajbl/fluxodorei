@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
 import { Edit2, Trash2 } from "lucide-react";
 import { dateHelper } from "@/lib/dateHelper";
+import { registrarLog } from "@/lib/logger";
 
 type Filtro = "todos" | "a_vencer" | "vencidos" | "pagos" | "recebidos";
 
@@ -54,9 +55,19 @@ const LancamentosList = ({ lancamentos, filtro, busca, onEdit, onDeleted }: Lanc
   }, [filtered]);
 
   const handleDelete = async (id: string) => {
+    const item = lancamentos.find(l => l.id === id);
     const { error } = await supabase.from("lancamentos").delete().eq("id", id);
     if (error) toast.error("Erro ao excluir");
-    else { toast.success("Excluído!"); onDeleted(); }
+    else {
+      if (item) {
+        await registrarLog({
+          acao: "EXCLUIR", entidade: item.tipo === "receita" ? "RECEITA" : "DESPESA",
+          entidade_id: id, dados_antes: item,
+          descricao: `'${item.descricao}' de R$ ${item.valor} excluído`,
+        });
+      }
+      toast.success("Excluído!"); onDeleted();
+    }
   };
 
   if (grouped.length === 0) {

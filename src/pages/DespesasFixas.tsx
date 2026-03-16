@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "@/components/ui/sonner";
 import { Plus, Trash2, Edit2 } from "lucide-react";
 import { dateHelper } from "@/lib/dateHelper";
+import { registrarLog } from "@/lib/logger";
 
 const DespesasFixas = () => {
   const { user } = useAuth();
@@ -101,6 +102,15 @@ const DespesasFixas = () => {
     if (error) {
       toast.error("Erro ao salvar", { description: error.message });
     } else {
+      const editingFixa = fixas.find(f => f.id === editingId);
+      await registrarLog({
+        acao: editingId ? "EDITAR" : "CRIAR", entidade: "DESPESA_FIXA",
+        entidade_id: editingId || undefined,
+        dados_antes: editingFixa || null, dados_depois: payload,
+        descricao: editingId
+          ? `Despesa fixa '${payload.descricao}' editada`
+          : `Despesa fixa '${payload.descricao}' de R$ ${payload.valor}/mês criada`,
+      });
       toast.success(editingId ? "Atualizada!" : "Despesa fixa criada!");
       setOpen(false);
       resetForm();
@@ -109,9 +119,13 @@ const DespesasFixas = () => {
   };
 
   const handleDelete = async (id: string) => {
+    const fixa = fixas.find(f => f.id === id);
     const { error } = await supabase.from("despesas_fixas").delete().eq("id", id);
     if (error) toast.error("Erro ao excluir");
-    else { toast.success("Excluída!"); fetchData(); }
+    else {
+      if (fixa) await registrarLog({ acao: "EXCLUIR", entidade: "DESPESA_FIXA", entidade_id: id, dados_antes: fixa, descricao: `Despesa fixa '${fixa.descricao}' excluída` });
+      toast.success("Excluída!"); fetchData();
+    }
   };
 
   const toggleAtivo = async (f: any) => {

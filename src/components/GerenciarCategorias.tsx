@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/sonner";
 import { Plus, Edit2, Trash2 } from "lucide-react";
+import { registrarLog } from "@/lib/logger";
 
 interface Props {
   open: boolean;
@@ -58,10 +59,18 @@ const GerenciarCategorias = ({ open, onOpenChange, onUpdate }: Props) => {
 
     if (editingCat) {
       const { error } = await supabase.from("categorias").update({ nome: payload.nome, tipo: payload.tipo }).eq("id", editingCat.id);
-      if (error) toast.error("Erro ao atualizar"); else toast.success("Categoria atualizada!");
+      if (error) toast.error("Erro ao atualizar");
+      else {
+        await registrarLog({ acao: "EDITAR", entidade: "CATEGORIA", entidade_id: editingCat.id, dados_antes: editingCat, dados_depois: payload, descricao: `Categoria '${editingCat.nome}' → '${payload.nome}'` });
+        toast.success("Categoria atualizada!");
+      }
     } else {
-      const { error } = await supabase.from("categorias").insert(payload);
-      if (error) toast.error("Erro ao criar"); else toast.success("Categoria criada!");
+      const { data: inserted, error } = await supabase.from("categorias").insert(payload).select("id").single();
+      if (error) toast.error("Erro ao criar");
+      else {
+        await registrarLog({ acao: "CRIAR", entidade: "CATEGORIA", entidade_id: inserted?.id, dados_depois: payload, descricao: `Categoria '${payload.nome}' criada` });
+        toast.success("Categoria criada!");
+      }
     }
     resetForm();
     fetchCategorias();
@@ -77,8 +86,13 @@ const GerenciarCategorias = ({ open, onOpenChange, onUpdate }: Props) => {
       setDeleteId(null);
       return;
     }
+    const catToDelete = categorias.find(c => c.id === deleteId);
     const { error } = await supabase.from("categorias").delete().eq("id", deleteId);
-    if (error) toast.error("Erro ao excluir"); else { toast.success("Categoria excluída!"); fetchCategorias(); onUpdate(); }
+    if (error) toast.error("Erro ao excluir");
+    else {
+      if (catToDelete) await registrarLog({ acao: "EXCLUIR", entidade: "CATEGORIA", entidade_id: deleteId, dados_antes: catToDelete, descricao: `Categoria '${catToDelete.nome}' excluída` });
+      toast.success("Categoria excluída!"); fetchCategorias(); onUpdate();
+    }
     setDeleteId(null);
   };
 

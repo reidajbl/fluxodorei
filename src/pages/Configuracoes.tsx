@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
 import { Download, Upload, FileJson, Clock, AlertTriangle, RefreshCw } from "lucide-react";
+import { registrarLog } from "@/lib/logger";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -103,6 +104,7 @@ const Configuracoes = () => {
       localStorage.setItem("backupHistorico", JSON.stringify(newHistorico));
       setHistorico(newHistorico);
 
+      await registrarLog({ acao: "EXPORTAR", entidade: "BACKUP", descricao: `Backup exportado: ${backup.estatisticas.totalLancamentos} lançamentos, ${backup.estatisticas.totalContas} contas` });
       toast.success("Backup exportado com sucesso!");
     } catch (e) {
       toast.error("Erro ao exportar backup.");
@@ -180,6 +182,7 @@ const Configuracoes = () => {
         if (!error) results.fixas++;
       }
 
+      await registrarLog({ acao: "IMPORTAR", entidade: "BACKUP", descricao: `Backup importado: ${results.contas} contas, ${results.categorias} categorias, ${results.lancamentos} lançamentos, ${results.fixas} fixas` });
       toast.success(`Importação concluída! ${results.contas} contas, ${results.categorias} categorias, ${results.lancamentos} lançamentos, ${results.fixas} fixas.`);
       setArquivo(null);
       if (fileRef.current) fileRef.current.value = "";

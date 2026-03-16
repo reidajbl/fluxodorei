@@ -14,6 +14,7 @@ import Contas from "./pages/Contas";
 import DespesasFixas from "./pages/DespesasFixas";
 import Relatorios from "./pages/Relatorios";
 import Configuracoes from "./pages/Configuracoes";
+import LogsAuditoria from "./pages/LogsAuditoria";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/contas" element={<ProtectedRoute><Contas /></ProtectedRoute>} />
             <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
             <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
+            <Route path="/logs" element={<ProtectedRoute><LogsAuditoria /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </DashboardProvider>
