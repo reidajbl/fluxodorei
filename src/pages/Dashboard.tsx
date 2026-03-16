@@ -223,7 +223,7 @@ const Dashboard = () => {
                 {dateHelper.nomeMes(mesView)} {anoView}
               </Button>
               <Button variant="outline" size="icon" onClick={mesProximo}><ChevronRight className="h-4 w-4" /></Button>
-              <Button variant="outline" size="sm" onClick={() => { refetchAll(); toast.success("Dashboard atualizado!"); }} className="ml-2">
+              <Button variant="outline" size="sm" onClick={() => { forceUpdate(); toast.success("Dashboard atualizado!"); }} className="ml-2">
                 <RefreshCw className="h-4 w-4 mr-1" /> Atualizar
               </Button>
             </div>
