@@ -93,7 +93,7 @@ const Contas = () => {
     if (error) toast.error("Erro ao excluir", { description: error.message });
     else {
       if (conta) await registrarLog({ acao: "EXCLUIR", entidade: "CONTA", entidade_id: id, dados_antes: conta, descricao: `Conta '${conta.nome}' excluída` });
-      toast.success("Conta excluída!"); fetchContas();
+      toast.success("Conta excluída!"); fetchContas(); forceUpdate();
     }
   };
 
