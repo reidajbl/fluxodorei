@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
 import { Edit2, Trash2 } from "lucide-react";
 import { dateHelper } from "@/lib/dateHelper";
+import { registrarLog } from "@/lib/logger";
 
 type Filtro = "todos" | "a_vencer" | "vencidos" | "pagos" | "recebidos";
 
