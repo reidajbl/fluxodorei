@@ -79,14 +79,35 @@ const Dashboard = () => {
     if (all) setAllLancamentos(all);
   };
 
+  const refetchAll = useCallback(async () => {
+    if (!user) return;
+    await gerarFixasParaMes(anoView, mesView);
+    await refetch();
+  }, [user, mesView, anoView]);
+
+  // Initial fetch + on month change
+  useEffect(() => {
+    refetchAll();
+  }, [refetchAll]);
+
+  // Realtime subscription for lancamentos changes
   useEffect(() => {
     if (!user) return;
-    const fetchAll = async () => {
-      await gerarFixasParaMes(anoView, mesView);
-      await refetch();
-    };
-    fetchAll();
-  }, [user, mesView, anoView]);
+    const channel = supabase
+      .channel('dashboard-lancamentos')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lancamentos' }, () => {
+        refetch();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
+  // Refetch on window focus (e.g. returning from Lancamentos page)
+  useEffect(() => {
+    const onFocus = () => { refetchAll(); };
+    window.addEventListener('focus', onFocus);
+    return () => { window.removeEventListener('focus', onFocus); };
+  }, [refetchAll]);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
