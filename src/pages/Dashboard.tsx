@@ -159,7 +159,7 @@ const Dashboard = () => {
       return totalContas + receitas - despesas;
     };
     return { d30: calcProj(30), d60: calcProj(60), d90: calcProj(90) };
-  }, [allLancamentos, contas]);
+  }, [allLancamentos, saldoRealPorConta]);
 
   // Top 5 expenses
   const topDespesas = useMemo(() => {
