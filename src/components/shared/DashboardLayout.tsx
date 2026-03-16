@@ -116,8 +116,8 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 lg:ml-64 h-screen overflow-hidden">
-          <div className="p-4 md:p-6 lg:p-8 h-full">{children}</div>
+        <main className="flex-1 lg:ml-64 min-h-screen overflow-y-auto">
+          <div className="p-4 md:p-6 lg:p-8">{children}</div>
         </main>
       </div>
     </div>
