@@ -86,8 +86,13 @@ const GerenciarCategorias = ({ open, onOpenChange, onUpdate }: Props) => {
       setDeleteId(null);
       return;
     }
+    const catToDelete = categorias.find(c => c.id === deleteId);
     const { error } = await supabase.from("categorias").delete().eq("id", deleteId);
-    if (error) toast.error("Erro ao excluir"); else { toast.success("Categoria excluída!"); fetchCategorias(); onUpdate(); }
+    if (error) toast.error("Erro ao excluir");
+    else {
+      if (catToDelete) await registrarLog({ acao: "EXCLUIR", entidade: "CATEGORIA", entidade_id: deleteId, dados_antes: catToDelete, descricao: `Categoria '${catToDelete.nome}' excluída` });
+      toast.success("Categoria excluída!"); fetchCategorias(); onUpdate();
+    }
     setDeleteId(null);
   };
 

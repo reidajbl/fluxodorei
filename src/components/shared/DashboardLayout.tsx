@@ -25,6 +25,7 @@ const navItems = [
   { href: "/contas", label: "Contas", icon: Wallet },
   { href: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { href: "/configuracoes", label: "Configurações", icon: Settings },
+  { href: "/logs", label: "Auditoria", icon: ClipboardList },
 ];
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {

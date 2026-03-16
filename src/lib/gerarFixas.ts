@@ -53,7 +53,16 @@ export async function gerarFixasParaMes(ano: number, mes: number) {
       user_id: user.id,
     });
 
-    if (!error) geradas++;
+    if (!error) {
+      geradas++;
+    }
+  }
+
+  if (geradas > 0) {
+    await registrarLog({
+      acao: "GERAR_FIXAS", entidade: "LANCAMENTO",
+      descricao: `${geradas} despesa(s) fixa(s) gerada(s) para ${String(mes).padStart(2, "0")}/${ano}`,
+    });
   }
 
   return geradas;

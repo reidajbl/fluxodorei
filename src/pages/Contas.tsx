@@ -85,9 +85,13 @@ const Contas = () => {
   };
 
   const handleDelete = async (id: string) => {
+    const conta = contas.find(c => c.id === id);
     const { error } = await supabase.from("contas").delete().eq("id", id);
     if (error) toast.error("Erro ao excluir", { description: error.message });
-    else { toast.success("Conta excluída!"); fetchContas(); }
+    else {
+      if (conta) await registrarLog({ acao: "EXCLUIR", entidade: "CONTA", entidade_id: id, dados_antes: conta, descricao: `Conta '${conta.nome}' excluída` });
+      toast.success("Conta excluída!"); fetchContas();
+    }
   };
 
   const formatCurrency = (value: number) =>

@@ -80,8 +80,23 @@ const LancamentoFormDialog = ({ open, onOpenChange, editingLancamento, defaultTi
     if (editingLancamento) {
       const { user_id, ...upd } = payload;
       ({ error } = await supabase.from("lancamentos").update(upd).eq("id", editingLancamento.id));
+      if (!error) {
+        await registrarLog({
+          acao: "EDITAR", entidade: payload.tipo === "receita" ? "RECEITA" : "DESPESA",
+          entidade_id: editingLancamento.id, dados_antes: editingLancamento, dados_depois: payload,
+          descricao: `'${payload.descricao}' editado: R$ ${editingLancamento.valor} → R$ ${payload.valor}`,
+        });
+      }
     } else {
-      ({ error } = await supabase.from("lancamentos").insert(payload));
+      const { data: inserted } = await supabase.from("lancamentos").insert(payload).select("id").single();
+      error = inserted ? null : { message: "Erro ao inserir" };
+      if (inserted) {
+        await registrarLog({
+          acao: "CRIAR", entidade: payload.tipo === "receita" ? "RECEITA" : "DESPESA",
+          entidade_id: inserted.id, dados_depois: payload,
+          descricao: `${payload.tipo === "receita" ? "Receita" : "Despesa"} '${payload.descricao}' de R$ ${payload.valor} criada`,
+        });
+      }
     }
     if (error) toast.error("Erro ao salvar", { description: error.message });
     else { toast.success(editingLancamento ? "Atualizado!" : "Criado!"); onOpenChange(false); onSaved(); }

@@ -182,6 +182,7 @@ const Configuracoes = () => {
         if (!error) results.fixas++;
       }
 
+      await registrarLog({ acao: "IMPORTAR", entidade: "BACKUP", descricao: `Backup importado: ${results.contas} contas, ${results.categorias} categorias, ${results.lancamentos} lançamentos, ${results.fixas} fixas` });
       toast.success(`Importação concluída! ${results.contas} contas, ${results.categorias} categorias, ${results.lancamentos} lançamentos, ${results.fixas} fixas.`);
       setArquivo(null);
       if (fileRef.current) fileRef.current.value = "";
