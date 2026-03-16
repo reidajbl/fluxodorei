@@ -68,6 +68,15 @@ const Contas = () => {
 
     if (error) toast.error("Erro ao salvar conta", { description: error.message });
     else {
+      const editingConta = contas.find(c => c.id === editingId);
+      await registrarLog({
+        acao: editingId ? "ALTERAR_SALDO" : "CRIAR", entidade: "CONTA",
+        entidade_id: editingId || undefined,
+        dados_antes: editingConta || null, dados_depois: payload,
+        descricao: editingId
+          ? `Conta '${form.nome}' editada — saldo: R$ ${editingConta?.saldo_inicial} → R$ ${payload.saldo_inicial}`
+          : `Conta '${form.nome}' criada com saldo R$ ${payload.saldo_inicial}`,
+      });
       toast.success(editingId ? "Conta atualizada!" : "Conta criada!");
       setOpen(false);
       resetForm();
