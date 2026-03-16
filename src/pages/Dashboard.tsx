@@ -114,13 +114,26 @@ const Dashboard = () => {
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
+  // Saldo real por conta: saldo_inicial + receitas pagas - despesas pagas
+  const saldoRealPorConta = useMemo(() => {
+    const result: Record<string, { nome: string; saldo: number; icone: string; cor: string }> = {};
+    for (const conta of contas) {
+      let saldo = Number(conta.saldo_inicial || 0);
+      const lancConta = allLancamentos.filter(l => l.conta_id === conta.id && l.status === "pago");
+      const receitas = lancConta.filter(l => l.tipo === "receita").reduce((acc, l) => acc + Number(l.valor), 0);
+      const despesas = lancConta.filter(l => l.tipo === "despesa").reduce((acc, l) => acc + Number(l.valor), 0);
+      saldo = saldo + receitas - despesas;
+      result[conta.id] = { nome: conta.nome, saldo, icone: conta.icone || "💰", cor: conta.cor || "#3b82f6" };
+    }
+    return result;
+  }, [contas, allLancamentos]);
+
   const resumo = useMemo(() => {
     const receitasPendentes = lancamentos.filter(l => l.tipo === "receita" && l.status !== "pago");
     const despesasPendentes = lancamentos.filter(l => l.tipo === "despesa" && l.status !== "pago");
     const aReceber = receitasPendentes.reduce((acc, l) => acc + Number(l.valor), 0);
     const aPagar = despesasPendentes.reduce((acc, l) => acc + Number(l.valor), 0);
-    const totalContas = contas.reduce((acc, c) => acc + Number(c.saldo_inicial || 0), 0);
-    const receitasMes = lancamentos.filter(l => l.tipo === "receita").reduce((acc, l) => acc + Number(l.valor), 0);
+    const totalContas = Object.values(saldoRealPorConta).reduce((acc, c) => acc + c.saldo, 0);
     const despesasMes = lancamentos.filter(l => l.tipo === "despesa").reduce((acc, l) => acc + Number(l.valor), 0);
     const projecao = totalContas - aPagar;
     return {
@@ -129,12 +142,12 @@ const Dashboard = () => {
       countDespesas: despesasPendentes.length,
       despesasMes,
     };
-  }, [lancamentos, contas]);
+  }, [lancamentos, saldoRealPorConta]);
 
   // Projections 30/60/90 days
   const projecoes = useMemo(() => {
     const hoje = dateHelper.hojeStr();
-    const totalContas = contas.reduce((acc, c) => acc + Number(c.saldo_inicial || 0), 0);
+    const totalContas = Object.values(saldoRealPorConta).reduce((acc, c) => acc + c.saldo, 0);
     const calcProj = (dias: number) => {
       const target = new Date();
       target.setDate(target.getDate() + dias);
@@ -146,7 +159,7 @@ const Dashboard = () => {
       return totalContas + receitas - despesas;
     };
     return { d30: calcProj(30), d60: calcProj(60), d90: calcProj(90) };
-  }, [allLancamentos, contas]);
+  }, [allLancamentos, saldoRealPorConta]);
 
   // Top 5 expenses
   const topDespesas = useMemo(() => {
@@ -284,7 +297,7 @@ const Dashboard = () => {
               <div className={`text-lg font-bold ${resumo.totalContas >= 0 ? "text-success" : "text-destructive"}`}>
                 {formatCurrency(resumo.totalContas)}
               </div>
-              <p className="text-xs text-muted-foreground">{contas.length} conta(s) ativa(s)</p>
+              <p className="text-xs text-muted-foreground">Saldo real ({contas.length} conta(s))</p>
             </CardContent>
           </Card>
           <Card className={`${resumo.projecao >= 0 ? "bg-success/5 border-success/20" : "bg-destructive/5 border-destructive/20"}`}>
@@ -301,7 +314,28 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Action Buttons */}
+        {/* Saldo por Conta */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">💰 Saldo por Conta</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {Object.values(saldoRealPorConta).map((conta) => (
+                <div key={conta.nome} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <span>{conta.icone}</span>
+                    <span className="font-medium text-sm">{conta.nome}</span>
+                  </div>
+                  <span className={`font-bold text-sm ${conta.saldo >= 0 ? "text-success" : "text-destructive"}`}>
+                    {formatCurrency(conta.saldo)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="flex flex-wrap gap-3">
           <Button className="bg-success hover:bg-success/90 text-success-foreground" onClick={() => navigate("/lancamentos")}>
             <Plus className="h-4 w-4 mr-2" />Receita
