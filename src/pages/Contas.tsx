@@ -49,12 +49,13 @@ const Contas = () => {
     e.preventDefault();
     if (!user) return;
 
-    const payload = {
+    const payload: any = {
       nome: form.nome.trim(),
       tipo: form.tipo,
       saldo_inicial: parseFloat(form.saldo_inicial),
       icone: form.icone,
       cor: form.cor,
+      ultima_alteracao_saldo: new Date().toISOString().split("T")[0],
     };
 
     let error;

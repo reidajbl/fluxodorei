@@ -60,6 +60,7 @@ export type Database = {
           nome: string
           saldo_inicial: number | null
           tipo: string | null
+          ultima_alteracao_saldo: string | null
           user_id: string
         }
         Insert: {
@@ -72,6 +73,7 @@ export type Database = {
           nome: string
           saldo_inicial?: number | null
           tipo?: string | null
+          ultima_alteracao_saldo?: string | null
           user_id: string
         }
         Update: {
@@ -84,6 +86,7 @@ export type Database = {
           nome?: string
           saldo_inicial?: number | null
           tipo?: string | null
+          ultima_alteracao_saldo?: string | null
           user_id?: string
         }
         Relationships: [
