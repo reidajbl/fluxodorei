@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "@/components/ui/sonner";
 import { Plus, Trash2, Edit2 } from "lucide-react";
 import { dateHelper } from "@/lib/dateHelper";
+import { registrarLog } from "@/lib/logger";
 
 const DespesasFixas = () => {
   const { user } = useAuth();
