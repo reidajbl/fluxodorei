@@ -7,11 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
-import { TrendingUp, TrendingDown, Wallet, Target, ChevronLeft, ChevronRight, Plus, Minus, AlertTriangle, RefreshCw, BarChart3, Search } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Target, ChevronLeft, ChevronRight, Plus, Minus, AlertTriangle, RefreshCw, Search } from "lucide-react";
 import { dateHelper } from "@/lib/dateHelper";
 import { gerarFixasParaMes } from "@/lib/gerarFixas";
-import { useNavigate } from "react-router-dom";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import LancamentoFormDialog from "@/components/lancamentos/LancamentoFormDialog";
+import LancamentosList from "@/components/lancamentos/LancamentosList";
 
 const PIE_COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"];
 
@@ -25,27 +26,20 @@ const TABS: { key: Filtro; label: string }[] = [
   { key: "recebidos", label: "Recebidos" },
 ];
 
-function getStatusInfo(l: any) {
-  const hoje = dateHelper.hojeStr();
-  if (l.status === "pago" || l.data_pagamento) {
-    if (l.tipo === "receita") return { label: "RECEBIDO", emoji: "✅", cls: "bg-success/10 text-success" };
-    return { label: "PAGO", emoji: "✅", cls: "bg-success/10 text-success" };
-  }
-  if (l.data_vencimento < hoje) return { label: "VENCIDO", emoji: "🔴", cls: "bg-destructive/10 text-destructive" };
-  return { label: "A VENCER", emoji: "🟡", cls: "bg-warning/10 text-warning" };
-}
-
 const Dashboard = () => {
   const { user } = useAuth();
   const { updateTrigger, forceUpdate } = useDashboard();
-  const navigate = useNavigate();
   const [lancamentos, setLancamentos] = useState<any[]>([]);
   const [allLancamentos, setAllLancamentos] = useState<any[]>([]);
   const [contas, setContas] = useState<any[]>([]);
-  const [categorias, setCategorias] = useState<any[]>([]);
   const [alertDismissed, setAlertDismissed] = useState(false);
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [busca, setBusca] = useState("");
+
+  // Form dialog state
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingLancamento, setEditingLancamento] = useState<any | null>(null);
+  const [defaultTipo, setDefaultTipo] = useState("despesa");
 
   const { ano: anoAtual, mes: mesAtual } = dateHelper.mesAnoAtual();
   const [mesView, setMesView] = useState(mesAtual);
@@ -66,18 +60,16 @@ const Dashboard = () => {
   const refetch = async () => {
     const inicio = dateHelper.primeiroDiaMes(anoView, mesView);
     const fim = dateHelper.ultimoDiaMes(anoView, mesView);
-    const [{ data: l }, { data: c }, { data: cat }, { data: all }] = await Promise.all([
+    const [{ data: l }, { data: c }, { data: all }] = await Promise.all([
       supabase.from("lancamentos").select("*, categorias(nome, cor), contas(nome, icone)")
         .gte("data_vencimento", inicio).lte("data_vencimento", fim)
         .order("data_vencimento", { ascending: false }),
       supabase.from("contas").select("*").eq("ativo", true),
-      supabase.from("categorias").select("*"),
       supabase.from("lancamentos").select("*, categorias(nome, cor)")
         .order("data_vencimento", { ascending: true }),
     ]);
     if (l) setLancamentos(l);
     if (c) setContas(c);
-    if (cat) setCategorias(cat);
     if (all) setAllLancamentos(all);
   };
 
@@ -87,24 +79,17 @@ const Dashboard = () => {
     await refetch();
   }, [user, mesView, anoView]);
 
-  // Initial fetch + on month change + on global update trigger
-  useEffect(() => {
-    refetchAll();
-  }, [refetchAll, updateTrigger]);
+  useEffect(() => { refetchAll(); }, [refetchAll, updateTrigger]);
 
-  // Realtime subscription for lancamentos changes
   useEffect(() => {
     if (!user) return;
     const channel = supabase
       .channel('dashboard-lancamentos')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'lancamentos' }, () => {
-        refetch();
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lancamentos' }, () => { refetch(); })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  // Refetch on window focus (e.g. returning from Lancamentos page)
   useEffect(() => {
     const onFocus = () => { refetchAll(); };
     window.addEventListener('focus', onFocus);
@@ -114,7 +99,6 @@ const Dashboard = () => {
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
-  // Saldo real por conta: saldo_inicial + receitas pagas - despesas pagas
   const saldoRealPorConta = useMemo(() => {
     const result: Record<string, { nome: string; saldo: number; icone: string; cor: string }> = {};
     for (const conta of contas) {
@@ -136,48 +120,9 @@ const Dashboard = () => {
     const totalContas = Object.values(saldoRealPorConta).reduce((acc, c) => acc + c.saldo, 0);
     const despesasMes = lancamentos.filter(l => l.tipo === "despesa").reduce((acc, l) => acc + Number(l.valor), 0);
     const projecao = totalContas - aPagar;
-    return {
-      aReceber, aPagar, totalContas, projecao,
-      countReceitas: receitasPendentes.length,
-      countDespesas: despesasPendentes.length,
-      despesasMes,
-    };
+    return { aReceber, aPagar, totalContas, projecao, countReceitas: receitasPendentes.length, countDespesas: despesasPendentes.length, despesasMes };
   }, [lancamentos, saldoRealPorConta]);
 
-  // Projections 30/60/90 days
-
-  // Top 5 expenses
-  const topDespesas = useMemo(() => {
-    const despesas = lancamentos.filter(l => l.tipo === "despesa").sort((a, b) => Number(b.valor) - Number(a.valor)).slice(0, 5);
-    const total = lancamentos.filter(l => l.tipo === "despesa").reduce((acc, l) => acc + Number(l.valor), 0);
-    return despesas.map(d => ({ ...d, pct: total > 0 ? (Number(d.valor) / total) * 100 : 0 }));
-  }, [lancamentos]);
-
-  // Apply filters (same logic as Lancamentos page)
-  const filtered = useMemo(() => {
-    return lancamentos.filter(l => {
-      if (busca && !l.descricao.toLowerCase().includes(busca.toLowerCase())) return false;
-      const status = getStatusInfo(l);
-      if (filtro === "a_vencer") return status.label === "A VENCER";
-      if (filtro === "vencidos") return status.label === "VENCIDO";
-      if (filtro === "pagos") return l.tipo === "despesa" && status.label === "PAGO";
-      if (filtro === "recebidos") return l.tipo === "receita" && status.label === "RECEBIDO";
-      return true;
-    });
-  }, [lancamentos, filtro, busca]);
-
-  // Group filtered lancamentos by date
-  const grouped = useMemo(() => {
-    const groups: Record<string, any[]> = {};
-    filtered.forEach(l => {
-      const d = l.data_vencimento;
-      if (!groups[d]) groups[d] = [];
-      groups[d].push(l);
-    });
-    return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
-  }, [filtered]);
-
-  // Category pie data
   const categoryPieData = useMemo(() => {
     const cats: Record<string, { nome: string; valor: number; cor: string }> = {};
     lancamentos.filter(l => l.tipo === "despesa").forEach(l => {
@@ -191,7 +136,6 @@ const Dashboard = () => {
     return arr.map(c => ({ ...c, pct: total > 0 ? (c.valor / total) * 100 : 0 }));
   }, [lancamentos]);
 
-  // Category breakdown for receitas
   const receitaCats = useMemo(() => {
     const cats: Record<string, { nome: string; valor: number }> = {};
     lancamentos.filter(l => l.tipo === "receita").forEach(l => {
@@ -203,6 +147,28 @@ const Dashboard = () => {
     const total = arr.reduce((s, c) => s + c.valor, 0);
     return arr.map(c => ({ ...c, pct: total > 0 ? (c.valor / total) * 100 : 0 }));
   }, [lancamentos]);
+
+  const topDespesas = useMemo(() => {
+    const despesas = lancamentos.filter(l => l.tipo === "despesa").sort((a, b) => Number(b.valor) - Number(a.valor)).slice(0, 5);
+    const total = lancamentos.filter(l => l.tipo === "despesa").reduce((acc, l) => acc + Number(l.valor), 0);
+    return despesas.map(d => ({ ...d, pct: total > 0 ? (Number(d.valor) / total) * 100 : 0 }));
+  }, [lancamentos]);
+
+  const openNew = (tipo: string) => {
+    setEditingLancamento(null);
+    setDefaultTipo(tipo);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (l: any) => {
+    setEditingLancamento(l);
+    setDialogOpen(true);
+  };
+
+  const handleSaved = () => {
+    refetchAll();
+    forceUpdate();
+  };
 
   const inicio = dateHelper.primeiroDiaMes(anoView, mesView);
   const fim = dateHelper.ultimoDiaMes(anoView, mesView);
@@ -321,23 +287,26 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Action buttons - open dialog directly */}
         <div className="flex flex-wrap gap-3">
-          <Button className="bg-success hover:bg-success/90 text-success-foreground" onClick={() => navigate("/lancamentos")}>
+          <Button className="bg-success hover:bg-success/90 text-success-foreground" onClick={() => openNew("receita")}>
             <Plus className="h-4 w-4 mr-2" />Receita
           </Button>
-          <Button variant="destructive" onClick={() => navigate("/lancamentos")}>
+          <Button variant="destructive" onClick={() => openNew("despesa")}>
             <Minus className="h-4 w-4 mr-2" />Despesa
-          </Button>
-          <Button variant="outline" onClick={() => navigate("/despesas-fixas")}>
-            <RefreshCw className="h-4 w-4 mr-2" />Fixas
-          </Button>
-          <Button variant="outline" onClick={() => navigate("/relatorios")}>
-            <BarChart3 className="h-4 w-4 mr-2" />Relatórios
           </Button>
         </div>
 
+        {/* Lancamento Form Dialog */}
+        <LancamentoFormDialog
+          open={dialogOpen}
+          onOpenChange={(o) => { setDialogOpen(o); if (!o) setEditingLancamento(null); }}
+          editingLancamento={editingLancamento}
+          defaultTipo={defaultTipo}
+          onSaved={handleSaved}
+        />
 
-          {/* Main grid: Lancamentos + Sidebar */}
+        {/* Main grid: Lancamentos + Sidebar */}
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Lancamentos grouped by date */}
           <Card className="lg:col-span-2">
@@ -360,58 +329,22 @@ const Dashboard = () => {
               {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Buscar lançamento..." value={busca} onChange={e => setBusca(e.target.value)}
-                  className="pl-9" />
+                <Input placeholder="Buscar lançamento..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-9" />
               </div>
 
-              {grouped.length === 0 ? (
-                <p className="text-muted-foreground text-sm text-center py-8">Nenhum lançamento encontrado.</p>
-              ) : (
-                <div className="space-y-4">
-                  {grouped.map(([date, items]) => (
-                    <div key={date}>
-                      <p className="text-xs font-semibold text-muted-foreground mb-2">
-                        {date === dateHelper.hojeStr() ? "📌 HOJE — " : ""}{dateHelper.formatarDataCompleta(date)}
-                      </p>
-                      <div className="space-y-1">
-                        {items.map((l: any) => {
-                          const st = getStatusInfo(l);
-                          return (
-                            <div key={l.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-accent/50 transition-colors">
-                              <div className="flex items-center gap-3 min-w-0">
-                                <span className="text-base shrink-0">{l.contas?.icone || "💰"}</span>
-                                <div className="min-w-0">
-                                  <div className="flex items-center gap-1.5">
-                                    <p className="font-medium text-sm truncate">{l.descricao}</p>
-                                    {l.observacoes?.includes("🔄 Fixa:") && (
-                                      <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">🔄</span>
-                                    )}
-                                  </div>
-                                  <p className="text-xs text-muted-foreground">{l.categorias?.nome} · {l.contas?.nome || ""}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <span className={`font-semibold text-sm ${l.tipo === "receita" ? "text-success" : "text-destructive"}`}>
-                                  {l.tipo === "receita" ? "+" : "-"}{formatCurrency(Number(l.valor))}
-                                </span>
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${st.cls}`}>
-                                  {st.emoji} {st.label}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {/* Shared list with edit/delete */}
+              <LancamentosList
+                lancamentos={lancamentos}
+                filtro={filtro}
+                busca={busca}
+                onEdit={openEdit}
+                onDeleted={handleSaved}
+              />
             </CardContent>
           </Card>
 
           {/* Sidebar: Category charts + Top 5 */}
           <div className="space-y-6">
-            {/* Pie chart despesas */}
             {categoryPieData.length > 0 && (
               <Card>
                 <CardHeader>
@@ -446,7 +379,6 @@ const Dashboard = () => {
               </Card>
             )}
 
-            {/* Receitas breakdown */}
             {receitaCats.length > 0 && (
               <Card>
                 <CardHeader>
@@ -468,7 +400,6 @@ const Dashboard = () => {
               </Card>
             )}
 
-            {/* Top 5 expenses */}
             {topDespesas.length > 0 && (
               <Card>
                 <CardHeader>
