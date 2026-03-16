@@ -147,7 +147,7 @@ const Dashboard = () => {
   // Projections 30/60/90 days
   const projecoes = useMemo(() => {
     const hoje = dateHelper.hojeStr();
-    const totalContas = contas.reduce((acc, c) => acc + Number(c.saldo_inicial || 0), 0);
+    const totalContas = Object.values(saldoRealPorConta).reduce((acc, c) => acc + c.saldo, 0);
     const calcProj = (dias: number) => {
       const target = new Date();
       target.setDate(target.getDate() + dias);
