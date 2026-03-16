@@ -314,7 +314,28 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Action Buttons */}
+        {/* Saldo por Conta */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">💰 Saldo por Conta</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {Object.values(saldoRealPorConta).map((conta) => (
+                <div key={conta.nome} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <span>{conta.icone}</span>
+                    <span className="font-medium text-sm">{conta.nome}</span>
+                  </div>
+                  <span className={`font-bold text-sm ${conta.saldo >= 0 ? "text-success" : "text-destructive"}`}>
+                    {formatCurrency(conta.saldo)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="flex flex-wrap gap-3">
           <Button className="bg-success hover:bg-success/90 text-success-foreground" onClick={() => navigate("/lancamentos")}>
             <Plus className="h-4 w-4 mr-2" />Receita
