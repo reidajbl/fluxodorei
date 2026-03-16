@@ -101,16 +101,8 @@ const Dashboard = () => {
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
   const saldoRealPorConta = useMemo(() => {
-    const result: Record<string, { nome: string; saldo: number; icone: string; cor: string }> = {};
-    for (const conta of contas) {
-      let saldo = Number(conta.saldo_inicial || 0);
-      const lancConta = allLancamentos.filter(l => l.conta_id === conta.id && l.status === "pago");
-      const receitas = lancConta.filter(l => l.tipo === "receita").reduce((acc, l) => acc + Number(l.valor), 0);
-      const despesas = lancConta.filter(l => l.tipo === "despesa").reduce((acc, l) => acc + Number(l.valor), 0);
-      saldo = saldo + receitas - despesas;
-      result[conta.id] = { nome: conta.nome, saldo, icone: conta.icone || "💰", cor: conta.cor || "#3b82f6" };
-    }
-    return result;
+    const { saldoPorConta } = calcularSaldoTodasContas(contas, allLancamentos);
+    return saldoPorConta;
   }, [contas, allLancamentos]);
 
   const resumo = useMemo(() => {
