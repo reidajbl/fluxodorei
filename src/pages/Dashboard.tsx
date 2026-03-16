@@ -78,8 +78,10 @@ const Dashboard = () => {
 
   const refetchAll = useCallback(async () => {
     if (!user) return;
+    setLoading(true);
     await gerarFixasParaMes(anoView, mesView);
     await refetch();
+    setLoading(false);
   }, [user, mesView, anoView]);
 
   useEffect(() => { refetchAll(); }, [refetchAll, updateTrigger]);
