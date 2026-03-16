@@ -257,18 +257,25 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Saldo por Conta - compact */}
-        <div className="flex flex-wrap gap-2">
-          {Object.values(saldoRealPorConta).map((conta) => (
-            <div key={conta.nome} className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg text-sm">
-              <span>{conta.icone}</span>
-              <span className="font-medium">{conta.nome}</span>
-              <span className={`font-bold ${conta.saldo >= 0 ? "text-success" : "text-destructive"}`}>
-                {formatCurrency(conta.saldo)}
-              </span>
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex flex-wrap gap-2">
+            <Skeleton className="h-8 w-40 rounded-lg" />
+            <Skeleton className="h-8 w-36 rounded-lg" />
+            <Skeleton className="h-8 w-44 rounded-lg" />
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {Object.values(saldoRealPorConta).map((conta) => (
+              <div key={conta.nome} className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg text-sm">
+                <span>{conta.icone}</span>
+                <span className="font-medium">{conta.nome}</span>
+                <span className={`font-bold ${conta.saldo >= 0 ? "text-success" : "text-destructive"}`}>
+                  {formatCurrency(conta.saldo)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Action buttons + Tabs + Search */}
         <div className="flex flex-wrap items-center gap-2">
