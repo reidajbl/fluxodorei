@@ -104,6 +104,7 @@ const Configuracoes = () => {
       localStorage.setItem("backupHistorico", JSON.stringify(newHistorico));
       setHistorico(newHistorico);
 
+      await registrarLog({ acao: "EXPORTAR", entidade: "BACKUP", descricao: `Backup exportado: ${backup.estatisticas.totalLancamentos} lançamentos, ${backup.estatisticas.totalContas} contas` });
       toast.success("Backup exportado com sucesso!");
     } catch (e) {
       toast.error("Erro ao exportar backup.");
