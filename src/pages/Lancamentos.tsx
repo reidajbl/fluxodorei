@@ -121,7 +121,7 @@ const Lancamentos = () => {
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from("lancamentos").delete().eq("id", id);
     if (error) toast.error("Erro ao excluir");
-    else { toast.success("Excluído!"); fetchData(); }
+    else { toast.success("Excluído!"); fetchData(); forceUpdate(); }
   };
 
   const formatCurrency = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
