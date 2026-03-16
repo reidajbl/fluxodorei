@@ -59,10 +59,18 @@ const GerenciarCategorias = ({ open, onOpenChange, onUpdate }: Props) => {
 
     if (editingCat) {
       const { error } = await supabase.from("categorias").update({ nome: payload.nome, tipo: payload.tipo }).eq("id", editingCat.id);
-      if (error) toast.error("Erro ao atualizar"); else toast.success("Categoria atualizada!");
+      if (error) toast.error("Erro ao atualizar");
+      else {
+        await registrarLog({ acao: "EDITAR", entidade: "CATEGORIA", entidade_id: editingCat.id, dados_antes: editingCat, dados_depois: payload, descricao: `Categoria '${editingCat.nome}' → '${payload.nome}'` });
+        toast.success("Categoria atualizada!");
+      }
     } else {
-      const { error } = await supabase.from("categorias").insert(payload);
-      if (error) toast.error("Erro ao criar"); else toast.success("Categoria criada!");
+      const { data: inserted, error } = await supabase.from("categorias").insert(payload).select("id").single();
+      if (error) toast.error("Erro ao criar");
+      else {
+        await registrarLog({ acao: "CRIAR", entidade: "CATEGORIA", entidade_id: inserted?.id, dados_depois: payload, descricao: `Categoria '${payload.nome}' criada` });
+        toast.success("Categoria criada!");
+      }
     }
     resetForm();
     fetchCategorias();
