@@ -14,6 +14,7 @@ import Contas from "./pages/Contas";
 import DespesasFixas from "./pages/DespesasFixas";
 import Relatorios from "./pages/Relatorios";
 import Configuracoes from "./pages/Configuracoes";
+import LogsAuditoria from "./pages/LogsAuditoria";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
