@@ -217,7 +217,7 @@ const Dashboard = () => {
                 <span className="text-xs font-medium text-muted-foreground uppercase">💰 A Receber</span>
                 <TrendingUp className="h-3.5 w-3.5 text-success" />
               </div>
-              <div className="text-base font-bold text-success">{formatCurrency(resumo.aReceber)}</div>
+              {loading ? <Skeleton className="h-6 w-24" /> : <div className="text-base font-bold text-success">{formatCurrency(resumo.aReceber)}</div>}
             </CardContent>
           </Card>
           <Card className="bg-destructive/5 border-destructive/20">
@@ -226,7 +226,7 @@ const Dashboard = () => {
                 <span className="text-xs font-medium text-muted-foreground uppercase">💸 A Pagar</span>
                 <TrendingDown className="h-3.5 w-3.5 text-destructive" />
               </div>
-              <div className="text-base font-bold text-destructive">{formatCurrency(resumo.aPagar)}</div>
+              {loading ? <Skeleton className="h-6 w-24" /> : <div className="text-base font-bold text-destructive">{formatCurrency(resumo.aPagar)}</div>}
             </CardContent>
           </Card>
           <Card className="bg-info/5 border-info/20">
@@ -235,9 +235,11 @@ const Dashboard = () => {
                 <span className="text-xs font-medium text-muted-foreground uppercase">💰 Total Contas</span>
                 <Wallet className="h-3.5 w-3.5 text-info" />
               </div>
-              <div className={`text-base font-bold ${resumo.totalContas >= 0 ? "text-success" : "text-destructive"}`}>
-                {formatCurrency(resumo.totalContas)}
-              </div>
+              {loading ? <Skeleton className="h-6 w-24" /> : (
+                <div className={`text-base font-bold ${resumo.totalContas >= 0 ? "text-success" : "text-destructive"}`}>
+                  {formatCurrency(resumo.totalContas)}
+                </div>
+              )}
             </CardContent>
           </Card>
           <Card className={`${resumo.projecao >= 0 ? "bg-success/5 border-success/20" : "bg-destructive/5 border-destructive/20"}`}>
@@ -246,9 +248,11 @@ const Dashboard = () => {
                 <span className="text-xs font-medium text-muted-foreground uppercase">🔮 Projeção</span>
                 <Target className="h-3.5 w-3.5 text-warning" />
               </div>
-              <div className={`text-base font-bold ${resumo.projecao >= 0 ? "text-success" : "text-destructive"}`}>
-                {formatCurrency(resumo.projecao)}
-              </div>
+              {loading ? <Skeleton className="h-6 w-24" /> : (
+                <div className={`text-base font-bold ${resumo.projecao >= 0 ? "text-success" : "text-destructive"}`}>
+                  {formatCurrency(resumo.projecao)}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
