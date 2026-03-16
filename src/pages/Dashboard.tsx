@@ -175,7 +175,7 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-screen overflow-hidden -m-4 md:-m-6 lg:-m-8 p-4 md:p-6 lg:p-8">
         {/* Header */}
         <div className="bg-card rounded-xl border border-border p-6">
           <h1 className="text-xl font-bold text-center">FLUXO REI DA JBL</h1>
