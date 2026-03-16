@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/shared/DashboardLayout";
@@ -79,14 +79,35 @@ const Dashboard = () => {
     if (all) setAllLancamentos(all);
   };
 
+  const refetchAll = useCallback(async () => {
+    if (!user) return;
+    await gerarFixasParaMes(anoView, mesView);
+    await refetch();
+  }, [user, mesView, anoView]);
+
+  // Initial fetch + on month change
+  useEffect(() => {
+    refetchAll();
+  }, [refetchAll]);
+
+  // Realtime subscription for lancamentos changes
   useEffect(() => {
     if (!user) return;
-    const fetchAll = async () => {
-      await gerarFixasParaMes(anoView, mesView);
-      await refetch();
-    };
-    fetchAll();
-  }, [user, mesView, anoView]);
+    const channel = supabase
+      .channel('dashboard-lancamentos')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lancamentos' }, () => {
+        refetch();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
+  // Refetch on window focus (e.g. returning from Lancamentos page)
+  useEffect(() => {
+    const onFocus = () => { refetchAll(); };
+    window.addEventListener('focus', onFocus);
+    return () => { window.removeEventListener('focus', onFocus); };
+  }, [refetchAll]);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -99,7 +120,7 @@ const Dashboard = () => {
     const totalContas = contas.reduce((acc, c) => acc + Number(c.saldo_inicial || 0), 0);
     const receitasMes = lancamentos.filter(l => l.tipo === "receita").reduce((acc, l) => acc + Number(l.valor), 0);
     const despesasMes = lancamentos.filter(l => l.tipo === "despesa").reduce((acc, l) => acc + Number(l.valor), 0);
-    const projecao = totalContas + receitasMes - despesasMes;
+    const projecao = totalContas - aPagar;
     return {
       aReceber, aPagar, totalContas, projecao,
       countReceitas: receitasPendentes.length,
