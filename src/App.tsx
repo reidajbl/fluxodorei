@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DashboardProvider } from "@/contexts/DashboardContext";
+import { DadosProvider } from "@/contexts/DadosContext";
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -26,6 +27,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <DadosProvider>
           <DashboardProvider>
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -41,6 +43,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           </DashboardProvider>
+          </DadosProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

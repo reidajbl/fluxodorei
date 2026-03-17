@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDashboard } from "@/contexts/DashboardContext";
+import { useDados } from "@/contexts/DadosContext";
 import DashboardLayout from "@/components/shared/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,9 +30,7 @@ const TABS: { key: Filtro; label: string }[] = [
 const Dashboard = () => {
   const { user } = useAuth();
   const { updateTrigger, forceUpdate } = useDashboard();
-  const [lancamentos, setLancamentos] = useState<any[]>([]);
-  const [allLancamentos, setAllLancamentos] = useState<any[]>([]);
-  const [contas, setContas] = useState<any[]>([]);
+  const { contas, lancamentos: allLancamentos, refresh, loading } = useDados();
   const [alertDismissed, setAlertDismissed] = useState(false);
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [busca, setBusca] = useState("");
@@ -58,44 +56,29 @@ const Dashboard = () => {
   };
   const mesAtualBtn = () => { setMesView(mesAtual); setAnoView(anoAtual); setAlertDismissed(false); };
 
-  const refetch = async () => {
+  // Filter lancamentos for the selected month from cached data
+  const lancamentos = useMemo(() => {
     const inicio = dateHelper.primeiroDiaMes(anoView, mesView);
     const fim = dateHelper.ultimoDiaMes(anoView, mesView);
-    const [{ data: l }, { data: c }, { data: all }] = await Promise.all([
-      supabase.from("lancamentos").select("*, categorias(nome, cor), contas(nome, icone)")
-        .gte("data_vencimento", inicio).lte("data_vencimento", fim)
-        .order("data_vencimento", { ascending: false }),
-      supabase.from("contas").select("*").eq("ativo", true),
-      supabase.from("lancamentos").select("*, categorias(nome, cor)")
-        .order("data_vencimento", { ascending: true }),
-    ]);
-    if (l) setLancamentos(l);
-    if (c) setContas(c);
-    if (all) setAllLancamentos(all);
-  };
+    return allLancamentos
+      .filter(l => l.data_vencimento >= inicio && l.data_vencimento <= fim)
+      .sort((a, b) => b.data_vencimento.localeCompare(a.data_vencimento));
+  }, [allLancamentos, anoView, mesView]);
 
+  // Generate fixed expenses for the month
   const refetchAll = useCallback(async () => {
     if (!user) return;
     await gerarFixasParaMes(anoView, mesView);
-    await refetch();
-  }, [user, mesView, anoView]);
+    await refresh();
+  }, [user, mesView, anoView, refresh]);
 
   useEffect(() => { refetchAll(); }, [refetchAll, updateTrigger]);
 
   useEffect(() => {
-    if (!user) return;
-    const channel = supabase
-      .channel('dashboard-lancamentos')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'lancamentos' }, () => { refetch(); })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [user]);
-
-  useEffect(() => {
-    const onFocus = () => { refetchAll(); };
+    const onFocus = () => { refresh(); };
     window.addEventListener('focus', onFocus);
     return () => { window.removeEventListener('focus', onFocus); };
-  }, [refetchAll]);
+  }, [refresh]);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -159,7 +142,7 @@ const Dashboard = () => {
   };
 
   const handleSaved = () => {
-    refetchAll();
+    refresh();
     forceUpdate();
   };
 
@@ -182,7 +165,7 @@ const Dashboard = () => {
                 {dateHelper.nomeMes(mesView)} {anoView}
               </Button>
               <Button variant="outline" size="icon" onClick={mesProximo}><ChevronRight className="h-4 w-4" /></Button>
-              <Button variant="outline" size="sm" onClick={() => { forceUpdate(); toast.success("Dashboard atualizado!"); }} className="ml-2">
+              <Button variant="outline" size="sm" onClick={() => { refresh(); forceUpdate(); toast.success("Dashboard atualizado!"); }} className="ml-2">
                 <RefreshCw className="h-4 w-4 mr-1" /> Atualizar
               </Button>
             </div>
