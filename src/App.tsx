@@ -27,6 +27,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <DadosProvider>
           <DashboardProvider>
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
