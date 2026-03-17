@@ -142,7 +142,7 @@ const Dashboard = () => {
   };
 
   const handleSaved = () => {
-    refetchAll();
+    refresh();
     forceUpdate();
   };
 
