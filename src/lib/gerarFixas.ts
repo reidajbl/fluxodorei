@@ -29,12 +29,13 @@ export async function gerarFixasParaMes(ano: number, mes: number) {
     const dia = Math.min(fixa.dia_vencimento, ultimoDia);
     const dataVencimento = dateHelper.criarDataSegura(ano, mes, dia);
 
-    // Check if already exists (by description + value + date)
+    // Check if already exists (strong check - all fields)
     const { data: existente } = await supabase
       .from("lancamentos")
       .select("id")
       .eq("descricao", fixa.descricao)
       .eq("valor", fixa.valor)
+      .eq("conta_id", fixa.conta_id)
       .eq("data_vencimento", dataVencimento)
       .eq("user_id", user.id)
       .limit(1);
