@@ -89,10 +89,11 @@ const Dashboard = () => {
   }, [contas, allLancamentos]);
 
   const resumo = useMemo(() => {
-    const receitasPendentes = lancamentos.filter(l => l.tipo === "receita" && l.status !== "pago");
-    const despesasPendentes = lancamentos.filter(l => l.tipo === "despesa" && l.status !== "pago");
-    const aReceber = receitasPendentes.reduce((acc, l) => acc + Number(l.valor), 0);
-    const aPagar = despesasPendentes.reduce((acc, l) => acc + Number(l.valor), 0);
+    const isPago = (l: any) => l.status === "pago" || !!l.data_pagamento;
+    const receitasPendentes = lancamentos.filter(l => l.tipo === "receita" && !isPago(l));
+    const despesasPendentes = lancamentos.filter(l => l.tipo === "despesa" && !isPago(l));
+    const aReceber = receitasPendentes.reduce((acc, l) => acc + Math.abs(Number(l.valor)), 0);
+    const aPagar = despesasPendentes.reduce((acc, l) => acc + Math.abs(Number(l.valor)), 0);
     const totalContas = Object.values(saldoRealPorConta).reduce((acc, c) => acc + c.saldo, 0);
     const despesasMes = lancamentos.filter(l => l.tipo === "despesa").reduce((acc, l) => acc + Number(l.valor), 0);
     const projecao = totalContas - aPagar;
