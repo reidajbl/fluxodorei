@@ -77,10 +77,10 @@ const Lancamentos = () => {
           <h1 className="text-2xl font-bold">📋 Lançamentos</h1>
           <div className="flex gap-2">
             <Button className="bg-success hover:bg-success/90 text-success-foreground" onClick={() => openNew("receita")}>
-              <Plus className="h-4 w-4 mr-2" />Receita
+              <Plus className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Receita</span>
             </Button>
             <Button variant="destructive" onClick={() => openNew("despesa")}>
-              <Minus className="h-4 w-4 mr-2" />Despesa
+              <Minus className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Despesa</span>
             </Button>
           </div>
         </div>
@@ -94,11 +94,11 @@ const Lancamentos = () => {
           <Button variant="outline" size="icon" onClick={mesProximo}><ChevronRight className="h-4 w-4" /></Button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-1.5">
+        {/* Tabs - horizontal scroll on mobile */}
+        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
           {TABS.map(t => (
             <Button key={t.key} variant={filtro === t.key ? "default" : "outline"} size="sm"
-              onClick={() => setFiltro(t.key)} className="text-xs">
+              onClick={() => setFiltro(t.key)} className="text-xs whitespace-nowrap shrink-0">
               {t.label}
             </Button>
           ))}

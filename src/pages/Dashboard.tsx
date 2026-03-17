@@ -247,17 +247,17 @@ const Dashboard = () => {
         </div>
 
         {/* Action buttons + Tabs + Search */}
-        <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" className="bg-success hover:bg-success/90 text-success-foreground" onClick={() => openNew("receita")}>
-            <Plus className="h-4 w-4 mr-1" />Receita
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <Button size="sm" className="bg-success hover:bg-success/90 text-success-foreground shrink-0" onClick={() => openNew("receita")}>
+            <Plus className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Receita</span>
           </Button>
-          <Button size="sm" variant="destructive" onClick={() => openNew("despesa")}>
-            <Minus className="h-4 w-4 mr-1" />Despesa
+          <Button size="sm" variant="destructive" className="shrink-0" onClick={() => openNew("despesa")}>
+            <Minus className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Despesa</span>
           </Button>
-          <div className="h-5 w-px bg-border mx-1" />
+          <div className="h-5 w-px bg-border mx-1 shrink-0" />
           {TABS.map(t => (
             <Button key={t.key} variant={filtro === t.key ? "default" : "outline"} size="sm"
-              onClick={() => setFiltro(t.key)} className="text-xs h-7">
+              onClick={() => setFiltro(t.key)} className="text-xs h-7 whitespace-nowrap shrink-0">
               {t.label}
             </Button>
           ))}

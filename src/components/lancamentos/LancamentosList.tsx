@@ -81,14 +81,15 @@ const LancamentosList = ({ lancamentos, filtro, busca, onEdit, onDeleted }: Lanc
           <p className="text-xs font-semibold text-muted-foreground mb-2">
             {date === hoje ? "📌 HOJE — " : ""}{dateHelper.formatarDataCompleta(date)}
           </p>
-          <div className="space-y-1">
+          <div className="space-y-1 sm:space-y-1">
             {items.map((l: any) => {
               const st = getStatusInfo(l);
               return (
-                <div key={l.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-accent/50 transition-colors">
+                <div key={l.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-3 rounded-lg hover:bg-accent/50 transition-colors border border-border/50 sm:border-0 gap-2 sm:gap-0">
+                  {/* Top: icon + description + fixed badge */}
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="text-base shrink-0">{l.contas?.icone || "💰"}</span>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <p className="font-medium text-sm truncate">{l.descricao}</p>
                         {l.observacoes?.includes("🔄 Fixa:") && (
@@ -98,19 +99,22 @@ const LancamentosList = ({ lancamentos, filtro, busca, onEdit, onDeleted }: Lanc
                       <p className="text-xs text-muted-foreground">{l.categorias?.nome} · {l.contas?.nome || ""}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  {/* Bottom: value + status + actions */}
+                  <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pl-8 sm:pl-0">
                     <span className={`font-semibold text-sm ${l.tipo === "receita" ? "text-success" : "text-destructive"}`}>
                       {l.tipo === "receita" ? "+" : "-"}{formatCurrency(Number(l.valor))}
                     </span>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${st.cls}`}>
                       {st.emoji} {st.label}
                     </span>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(l)}>
-                      <Edit2 className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(l.id)}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-7 sm:w-7" onClick={() => onEdit(l)}>
+                        <Edit2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-7 sm:w-7 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(l.id)}>
+                        <Trash2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               );
