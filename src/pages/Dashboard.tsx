@@ -191,41 +191,41 @@ const Dashboard = () => {
         {/* Summary Cards */}
         <div className="grid gap-2 grid-cols-2 lg:grid-cols-4">
           <Card className="bg-success/5 border-success/20">
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-muted-foreground uppercase">💰 A Receber</span>
-                <TrendingUp className="h-3.5 w-3.5 text-success" />
+            <CardContent className="p-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-medium text-muted-foreground uppercase">💰 A Receber</span>
+                <TrendingUp className="h-3 w-3 text-success" />
               </div>
-              <div className="text-base font-bold text-success">{formatCurrency(resumo.aReceber)}</div>
+              <div className="text-sm font-bold text-success">{formatCurrency(resumo.aReceber)}</div>
             </CardContent>
           </Card>
           <Card className="bg-destructive/5 border-destructive/20">
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-muted-foreground uppercase">💸 A Pagar</span>
-                <TrendingDown className="h-3.5 w-3.5 text-destructive" />
+            <CardContent className="p-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-medium text-muted-foreground uppercase">💸 A Pagar</span>
+                <TrendingDown className="h-3 w-3 text-destructive" />
               </div>
-              <div className="text-base font-bold text-destructive">{formatCurrency(resumo.aPagar)}</div>
+              <div className="text-sm font-bold text-destructive">{formatCurrency(resumo.aPagar)}</div>
             </CardContent>
           </Card>
           <Card className="bg-info/5 border-info/20">
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-muted-foreground uppercase">💰 Total Contas</span>
-                <Wallet className="h-3.5 w-3.5 text-info" />
+            <CardContent className="p-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-medium text-muted-foreground uppercase">💰 Total Contas</span>
+                <Wallet className="h-3 w-3 text-info" />
               </div>
-              <div className={`text-base font-bold ${resumo.totalContas >= 0 ? "text-success" : "text-destructive"}`}>
+              <div className={`text-sm font-bold ${resumo.totalContas >= 0 ? "text-success" : "text-destructive"}`}>
                 {formatCurrency(resumo.totalContas)}
               </div>
             </CardContent>
           </Card>
           <Card className={`${resumo.projecao >= 0 ? "bg-success/5 border-success/20" : "bg-destructive/5 border-destructive/20"}`}>
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-muted-foreground uppercase">🔮 Projeção</span>
-                <Target className="h-3.5 w-3.5 text-warning" />
+            <CardContent className="p-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-medium text-muted-foreground uppercase">🔮 Projeção</span>
+                <Target className="h-3 w-3 text-warning" />
               </div>
-              <div className={`text-base font-bold ${resumo.projecao >= 0 ? "text-success" : "text-destructive"}`}>
+              <div className={`text-sm font-bold ${resumo.projecao >= 0 ? "text-success" : "text-destructive"}`}>
                 {formatCurrency(resumo.projecao)}
               </div>
             </CardContent>
