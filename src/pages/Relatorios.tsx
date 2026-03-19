@@ -499,6 +499,49 @@ ${topDesp}
             </CardContent>
           </Card>
         )}
+
+        {/* Conciliação de Caixa */}
+        {contas.length > 0 && (
+          <Card>
+            <CardHeader><CardTitle className="text-base">🔍 Conciliação de Caixa</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              {contas.map(conta => {
+                const saldoInicial = Number(conta.saldo_inicial || 0);
+                const lancConta = lancamentos.filter(l => l.conta_id === conta.id && (l.status === "pago" || !!l.data_pagamento));
+                const entradas = lancConta.filter(l => l.tipo === "receita").reduce((a, l) => a + Number(l.valor), 0);
+                const saidas = lancConta.filter(l => l.tipo === "despesa").reduce((a, l) => a + Number(l.valor), 0);
+                const saldoEsperado = saldoInicial + entradas - saidas;
+                // We don't have a "saldo_atual" field, so just show the calculation
+                return (
+                  <div key={conta.id} className="p-4 rounded-lg border border-border space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{conta.icone || "💰"}</span>
+                      <span className="font-semibold">{conta.nome}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="text-muted-foreground">Saldo Inicial:</div>
+                      <div className="text-right font-medium">{formatCurrency(saldoInicial)}</div>
+                      <div className="text-muted-foreground">+ Entradas (pagas):</div>
+                      <div className="text-right font-medium text-success">{formatCurrency(entradas)}</div>
+                      <div className="text-muted-foreground">- Saídas (pagas):</div>
+                      <div className="text-right font-medium text-destructive">{formatCurrency(saidas)}</div>
+                      <div className="border-t border-border pt-1 font-semibold">= Saldo Calculado:</div>
+                      <div className={`border-t border-border pt-1 text-right font-bold ${saldoEsperado >= 0 ? "text-success" : "text-destructive"}`}>
+                        {formatCurrency(saldoEsperado)}
+                      </div>
+                    </div>
+                    {saldoEsperado < 0 && (
+                      <div className="flex items-start gap-2 p-2 rounded bg-destructive/10 text-xs text-destructive">
+                        <span>⚠️</span>
+                        <span>Saldo negativo! Possíveis causas: lançamento duplicado, despesa não registrada ou saldo inicial incorreto. Use "🔧 Ajustar" na tela de Contas.</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   );
