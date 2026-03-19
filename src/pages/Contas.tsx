@@ -9,9 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
-import { Plus, Trash2, Edit2 } from "lucide-react";
+import { Plus, Trash2, Edit2, Wrench, AlertTriangle } from "lucide-react";
 import { registrarLog } from "@/lib/logger";
 import { useDashboard } from "@/contexts/DashboardContext";
+import { calcularSaldoConta } from "@/lib/saldoHelper";
+import { useDados } from "@/contexts/DadosContext";
 
 const ICONES = ["💰", "🏦", "💳", "👛", "🪙", "💵", "📱"];
 const TIPOS = [
@@ -24,10 +26,19 @@ const TIPOS = [
 const Contas = () => {
   const { user } = useAuth();
   const { forceUpdate } = useDashboard();
+  const { lancamentos: allLancamentos, refresh } = useDados();
   const [contas, setContas] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ nome: "", tipo: "banco", saldo_inicial: "0", icone: "💰", cor: "#3b82f6" });
+  const [contaTemLancamentos, setContaTemLancamentos] = useState(false);
+
+  // Ajuste manual state
+  const [ajusteOpen, setAjusteOpen] = useState(false);
+  const [ajusteConta, setAjusteConta] = useState<any>(null);
+  const [ajusteValor, setAjusteValor] = useState("");
+  const [ajusteObs, setAjusteObs] = useState("");
+  const [ajusteTipo, setAjusteTipo] = useState<"receita" | "despesa">("receita");
 
   const fetchContas = async () => {
     if (!user) return;
@@ -40,11 +51,22 @@ const Contas = () => {
   const resetForm = () => {
     setForm({ nome: "", tipo: "banco", saldo_inicial: "0", icone: "💰", cor: "#3b82f6" });
     setEditingId(null);
+    setContaTemLancamentos(false);
   };
 
-  const openEdit = (c: any) => {
+  const checkLancamentos = async (contaId: string) => {
+    const { count } = await supabase
+      .from("lancamentos")
+      .select("id", { count: "exact", head: true })
+      .eq("conta_id", contaId);
+    return (count || 0) > 0;
+  };
+
+  const openEdit = async (c: any) => {
     setEditingId(c.id);
     setForm({ nome: c.nome, tipo: c.tipo || "banco", saldo_inicial: String(c.saldo_inicial || 0), icone: c.icone || "💰", cor: c.cor || "#3b82f6" });
+    const temLanc = await checkLancamentos(c.id);
+    setContaTemLancamentos(temLanc);
     setOpen(true);
   };
 
@@ -60,6 +82,13 @@ const Contas = () => {
       cor: form.cor,
       ultima_alteracao_saldo: new Date().toISOString().split("T")[0],
     };
+
+    // If editing and has lancamentos, don't change saldo_inicial
+    if (editingId && contaTemLancamentos) {
+      const contaOriginal = contas.find(c => c.id === editingId);
+      payload.saldo_inicial = contaOriginal?.saldo_inicial || 0;
+      delete payload.ultima_alteracao_saldo;
+    }
 
     let error;
     if (editingId) {
@@ -83,6 +112,7 @@ const Contas = () => {
       setOpen(false);
       resetForm();
       fetchContas();
+      refresh();
       forceUpdate();
     }
   };
@@ -93,7 +123,75 @@ const Contas = () => {
     if (error) toast.error("Erro ao excluir", { description: error.message });
     else {
       if (conta) await registrarLog({ acao: "EXCLUIR", entidade: "CONTA", entidade_id: id, dados_antes: conta, descricao: `Conta '${conta.nome}' excluída` });
-      toast.success("Conta excluída!"); fetchContas(); forceUpdate();
+      toast.success("Conta excluída!"); fetchContas(); refresh(); forceUpdate();
+    }
+  };
+
+  const openAjuste = (conta: any) => {
+    setAjusteConta(conta);
+    setAjusteValor("");
+    setAjusteObs("");
+    setAjusteTipo("receita");
+    setAjusteOpen(true);
+  };
+
+  const handleAjuste = async () => {
+    if (!user || !ajusteConta || !ajusteValor) {
+      toast.error("Preencha o valor do ajuste");
+      return;
+    }
+
+    const valor = parseFloat(ajusteValor);
+    if (isNaN(valor) || valor <= 0) {
+      toast.error("Valor inválido");
+      return;
+    }
+
+    // Find or use "Ajuste de caixa" category
+    let categoriaId: string | null = null;
+    const { data: cats } = await supabase.from("categorias").select("id, nome").eq("user_id", user.id);
+    const ajusteCat = cats?.find(c => c.nome.includes("Ajuste de caixa") || c.nome.includes("Ajuste"));
+    if (ajusteCat) {
+      categoriaId = ajusteCat.id;
+    } else {
+      // Create the category
+      const { data: newCat } = await supabase.from("categorias").insert({
+        nome: "🔧 Ajuste de caixa",
+        tipo: "ambos",
+        cor: "#f59e0b",
+        user_id: user.id,
+      }).select("id").single();
+      if (newCat) categoriaId = newCat.id;
+    }
+
+    const hoje = new Date().toISOString().split("T")[0];
+    const { error } = await supabase.from("lancamentos").insert({
+      descricao: `Ajuste de caixa — ${ajusteConta.nome}`,
+      valor,
+      tipo: ajusteTipo,
+      conta_id: ajusteConta.id,
+      categoria_id: categoriaId,
+      data_vencimento: hoje,
+      data_pagamento: hoje,
+      status: "pago",
+      observacoes: ajusteObs || "Ajuste manual de caixa",
+      user_id: user.id,
+    });
+
+    if (error) {
+      toast.error("Erro ao criar ajuste", { description: error.message });
+    } else {
+      await registrarLog({
+        acao: "AJUSTE_CAIXA",
+        entidade: "CONTA",
+        entidade_id: ajusteConta.id,
+        dados_depois: { valor, tipo: ajusteTipo, conta: ajusteConta.nome },
+        descricao: `Ajuste de caixa: ${ajusteTipo === "receita" ? "+" : "-"}R$ ${valor.toFixed(2)} na conta '${ajusteConta.nome}'`,
+      });
+      toast.success(`Ajuste de ${ajusteTipo === "receita" ? "crédito" : "débito"} registrado!`);
+      setAjusteOpen(false);
+      refresh();
+      forceUpdate();
     }
   };
 
@@ -129,7 +227,25 @@ const Contas = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Saldo Inicial (R$)</Label>
-                  <Input type="number" step="0.01" value={form.saldo_inicial} onChange={(e) => setForm({ ...form, saldo_inicial: e.target.value })} />
+                  {editingId && contaTemLancamentos ? (
+                    <div className="space-y-2">
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={form.saldo_inicial}
+                        disabled
+                        className="opacity-60 cursor-not-allowed"
+                      />
+                      <div className="flex items-start gap-2 p-2.5 rounded-lg bg-warning/10 border border-warning/30">
+                        <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                        <p className="text-xs text-warning">
+                          ⚠️ Esta conta já possui movimentações. Para corrigir diferenças, use o botão <strong>"🔧 Ajustar"</strong> no card da conta.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <Input type="number" step="0.01" value={form.saldo_inicial} onChange={(e) => setForm({ ...form, saldo_inicial: e.target.value })} />
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Ícone</Label>
@@ -163,34 +279,83 @@ const Contas = () => {
           </Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {contas.map((c) => (
-              <Card key={c.id} className="relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1" style={{ backgroundColor: c.cor }} />
-                <CardContent className="pt-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{c.icone}</span>
-                      <div>
-                        <p className="font-semibold">{c.nome}</p>
-                        <p className="text-xs text-muted-foreground capitalize">{c.tipo}</p>
+            {contas.map((c) => {
+              const saldoReal = calcularSaldoConta(c, allLancamentos);
+              return (
+                <Card key={c.id} className="relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1" style={{ backgroundColor: c.cor }} />
+                  <CardContent className="pt-5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{c.icone}</span>
+                        <div>
+                          <p className="font-semibold">{c.nome}</p>
+                          <p className="text-xs text-muted-foreground capitalize">{c.tipo}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-warning" onClick={() => openAjuste(c)} title="Ajuste manual de caixa">
+                          <Wrench className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(c)}>
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(c.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(c)}>
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(c.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <div className="mt-4">
+                      <p className="text-xl font-bold">{formatCurrency(saldoReal)}</p>
+                      <p className="text-xs text-muted-foreground">Saldo atual</p>
                     </div>
-                  </div>
-                  <p className="mt-4 text-xl font-bold">{formatCurrency(Number(c.saldo_inicial))}</p>
-                  <p className="text-xs text-muted-foreground">Saldo inicial</p>
-                </CardContent>
-              </Card>
-            ))}
+                    <div className="mt-1">
+                      <p className="text-xs text-muted-foreground">
+                        Saldo inicial: {formatCurrency(Number(c.saldo_inicial))}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
+
+        {/* Ajuste Manual Dialog */}
+        <Dialog open={ajusteOpen} onOpenChange={setAjusteOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>🔧 Ajuste Manual — {ajusteConta?.nome}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Cria um lançamento de ajuste (já pago) para corrigir diferenças de caixa sem alterar o saldo inicial.
+              </p>
+              <div className="space-y-2">
+                <Label>Tipo de ajuste</Label>
+                <Select value={ajusteTipo} onValueChange={(v) => setAjusteTipo(v as "receita" | "despesa")}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="receita">➕ Crédito (aumentar saldo)</SelectItem>
+                    <SelectItem value="despesa">➖ Débito (diminuir saldo)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Valor (R$) *</Label>
+                <Input type="number" step="0.01" min="0.01" value={ajusteValor} onChange={(e) => setAjusteValor(e.target.value)} placeholder="0,00" />
+              </div>
+              <div className="space-y-2">
+                <Label>Observação</Label>
+                <Input value={ajusteObs} onChange={(e) => setAjusteObs(e.target.value)} placeholder="Motivo do ajuste..." maxLength={200} />
+              </div>
+              <div className="flex gap-3">
+                <Button className="flex-1" onClick={handleAjuste}>💾 Registrar Ajuste</Button>
+                <Button variant="outline" className="flex-1" onClick={() => setAjusteOpen(false)}>❌ Cancelar</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
