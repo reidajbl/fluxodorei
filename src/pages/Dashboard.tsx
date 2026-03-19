@@ -152,7 +152,7 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-screen overflow-hidden -m-4 md:-m-6 lg:-m-8 p-4 md:p-6 lg:p-8">
+      <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-screen overflow-hidden -m-4 md:-m-6 lg:-m-8 p-3 md:p-4 lg:p-6">
         {/* Fixed top section */}
         <div className="flex-none space-y-4 overflow-hidden">
         {/* Header */}
