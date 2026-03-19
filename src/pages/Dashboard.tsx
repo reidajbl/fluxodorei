@@ -156,22 +156,21 @@ const Dashboard = () => {
         {/* Fixed top section */}
         <div className="flex-none space-y-2 overflow-hidden">
         {/* Header */}
-        <div className="bg-card rounded-xl border border-border p-4">
-          <h1 className="text-xl font-bold text-center">FLUXO REI DA JBL</h1>
-          <p className="text-sm text-muted-foreground text-center">Controle financeiro simples</p>
-          <div className="mt-3 flex flex-col sm:flex-row items-center justify-center gap-2">
+        <div className="bg-card rounded-xl border border-border p-3">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div>
+              <h1 className="text-lg font-bold">FLUXO REI DA JBL</h1>
+              <p className="text-xs text-muted-foreground">Controle financeiro simples</p>
+            </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" onClick={mesAnterior}><ChevronLeft className="h-4 w-4" /></Button>
-              <Button variant="outline" onClick={mesAtualBtn} className="min-w-[140px]">
+              <Button variant="outline" size="icon" className="h-7 w-7" onClick={mesAnterior}><ChevronLeft className="h-3.5 w-3.5" /></Button>
+              <Button variant="outline" onClick={mesAtualBtn} className="min-w-[130px] h-7 text-sm">
                 {dateHelper.nomeMes(mesView)} {anoView}
               </Button>
-              <Button variant="outline" size="icon" onClick={mesProximo}><ChevronRight className="h-4 w-4" /></Button>
-              <Button variant="outline" size="sm" onClick={() => { refresh(); forceUpdate(); toast.success("Dashboard atualizado!"); }} className="ml-2">
-                <RefreshCw className="h-4 w-4 mr-1" /> Atualizar
+              <Button variant="outline" size="icon" className="h-7 w-7" onClick={mesProximo}><ChevronRight className="h-3.5 w-3.5" /></Button>
+              <Button variant="outline" size="sm" className="h-7 ml-1" onClick={() => { refresh(); forceUpdate(); toast.success("Dashboard atualizado!"); }}>
+                <RefreshCw className="h-3.5 w-3.5 mr-1" /> Atualizar
               </Button>
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {dateHelper.formatarParaExibicao(inicio)} — {dateHelper.formatarParaExibicao(fim)}
             </div>
           </div>
         </div>
