@@ -154,7 +154,7 @@ const Dashboard = () => {
     <DashboardLayout>
       <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-screen overflow-hidden -m-4 md:-m-6 lg:-m-8 p-3 md:p-4 lg:p-6">
         {/* Fixed top section */}
-        <div className="flex-none space-y-4 overflow-hidden">
+        <div className="flex-none space-y-2 overflow-hidden">
         {/* Header */}
         <div className="bg-card rounded-xl border border-border p-4">
           <h1 className="text-xl font-bold text-center">FLUXO REI DA JBL</h1>
