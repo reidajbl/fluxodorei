@@ -233,9 +233,9 @@ const Dashboard = () => {
         </div>
 
         {/* Saldo por Conta - compact */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {Object.values(saldoRealPorConta).map((conta) => (
-            <div key={conta.nome} className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg text-sm">
+            <div key={conta.nome} className="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded-md text-xs">
               <span>{conta.icone}</span>
               <span className="font-medium">{conta.nome}</span>
               <span className={`font-bold ${conta.saldo >= 0 ? "text-success" : "text-destructive"}`}>
