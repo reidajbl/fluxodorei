@@ -36,8 +36,7 @@ const LancamentosList = ({ lancamentos, filtro, busca, onEdit, onDeleted }: Lanc
     return lancamentos.filter(l => {
       if (busca && !l.descricao.toLowerCase().includes(busca.toLowerCase())) return false;
       const status = getStatusInfo(l);
-      const pendente = status.label === "A VENCER" || status.label === "VENCIDO";
-      if (filtro === "a_vencer") return l.tipo === "despesa" && pendente;
+      if (filtro === "a_vencer") return status.label === "A VENCER";
       if (filtro === "vencidos") return status.label === "VENCIDO";
       if (filtro === "pagos") return l.tipo === "despesa" && status.label === "PAGO";
       if (filtro === "recebidos") return l.tipo === "receita" && status.label === "RECEBIDO";
