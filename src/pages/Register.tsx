@@ -86,7 +86,7 @@ const Register = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </main>
   );
 };
 
