@@ -91,14 +91,17 @@ const Dashboard = () => {
   const resumo = useMemo(() => {
     const isPago = (l: any) => l.status === "pago" || !!l.data_pagamento;
     const receitasPendentes = lancamentos.filter(l => l.tipo === "receita" && !isPago(l));
-    const despesasPendentes = lancamentos.filter(l => l.tipo === "despesa" && !isPago(l));
+    const fimMesSelecionado = dateHelper.ultimoDiaMes(anoView, mesView);
+    const despesasPendentes = allLancamentos.filter(
+      l => l.tipo === "despesa" && !isPago(l) && l.data_vencimento <= fimMesSelecionado
+    );
     const aReceber = receitasPendentes.reduce((acc, l) => acc + Math.abs(Number(l.valor)), 0);
     const aPagar = despesasPendentes.reduce((acc, l) => acc + Math.abs(Number(l.valor)), 0);
     const totalContas = Object.values(saldoRealPorConta).reduce((acc, c) => acc + c.saldo, 0);
     const despesasMes = lancamentos.filter(l => l.tipo === "despesa").reduce((acc, l) => acc + Number(l.valor), 0);
     const projecao = totalContas - aPagar;
     return { aReceber, aPagar, totalContas, projecao, countReceitas: receitasPendentes.length, countDespesas: despesasPendentes.length, despesasMes };
-  }, [lancamentos, saldoRealPorConta]);
+  }, [lancamentos, allLancamentos, saldoRealPorConta, anoView, mesView]);
 
   const categoryPieData = useMemo(() => {
     const cats: Record<string, { nome: string; valor: number; cor: string }> = {};
@@ -257,7 +260,7 @@ const Dashboard = () => {
           {TABS.map(t => (
             <Button key={t.key} variant={filtro === t.key ? "default" : "outline"} size="sm"
               onClick={() => setFiltro(t.key)} className="text-xs h-7 whitespace-nowrap shrink-0">
-              {t.label}
+              {t.key === "a_vencer" ? "A Pagar" : t.label}
             </Button>
           ))}
         </div>
