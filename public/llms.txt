@@ -1,0 +1,10 @@
+# FLUXO REI DA JBL
+
+> Aplicativo web de controle financeiro: contas, lançamentos, despesas fixas, relatórios e projeção de fluxo de caixa.
+
+O FLUXO REI DA JBL ajuda pequenos negócios a organizarem entradas, saídas e saldos por conta, com dashboard de "A receber", "A pagar" e projeção, além de relatório de conciliação de caixa.
+
+## Pages
+
+- [Login](/login): Acesso ao painel financeiro.
+- [Criar conta](/register): Cadastro de novo usuário.

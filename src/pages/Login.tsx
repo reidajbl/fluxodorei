@@ -30,7 +30,8 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
+    <main className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
+      <h1 className="sr-only">Entrar no FLUXO REI DA JBL</h1>
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary">
@@ -83,7 +84,7 @@ const Login = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </main>
   );
 };
 
