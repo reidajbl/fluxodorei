@@ -134,6 +134,15 @@ const Dashboard = () => {
     return despesas.map(d => ({ ...d, pct: total > 0 ? (Number(d.valor) / total) * 100 : 0 }));
   }, [lancamentos]);
 
+  const lancamentosParaLista = useMemo(() => {
+    if (filtro !== "a_vencer") return lancamentos;
+
+    const fimMesSelecionado = dateHelper.ultimoDiaMes(anoView, mesView);
+    return allLancamentos
+      .filter(l => l.data_vencimento <= fimMesSelecionado)
+      .sort((a, b) => b.data_vencimento.localeCompare(a.data_vencimento));
+  }, [filtro, lancamentos, allLancamentos, anoView, mesView]);
+
   const openNew = (tipo: string) => {
     setEditingLancamento(null);
     setDefaultTipo(tipo);
@@ -286,7 +295,7 @@ const Dashboard = () => {
           </div>
           <div className="p-4">
             <LancamentosList
-              lancamentos={lancamentos}
+              lancamentos={lancamentosParaLista}
               filtro={filtro}
               busca={busca}
               onEdit={openEdit}
