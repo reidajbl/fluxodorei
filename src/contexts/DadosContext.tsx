@@ -56,7 +56,8 @@ export const DadosProvider = ({ children }: { children: ReactNode }) => {
       supabase
         .from("lancamentos")
         .select("*, categorias(nome, cor), contas(nome, icone)")
-        .order("data_vencimento", { ascending: true }),
+        .order("data_vencimento", { ascending: false })
+        .range(0, 49999),
     ]);
 
     const c = contasRes.data || [];
