@@ -19,6 +19,30 @@ const DadosContext = createContext<DadosContextType>({
 });
 
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const PAGE_SIZE = 1000;
+
+async function buscarTodosLancamentos() {
+  const todos: any[] = [];
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from("lancamentos")
+      .select("*, categorias(nome, cor), contas(nome, icone)")
+      .order("data_vencimento", { ascending: false })
+      .range(from, from + PAGE_SIZE - 1);
+
+    if (error) throw error;
+
+    const pagina = data || [];
+    todos.push(...pagina);
+
+    if (pagina.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
+
+  return todos;
+}
 
 export const DadosProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
@@ -53,15 +77,11 @@ export const DadosProvider = ({ children }: { children: ReactNode }) => {
 
     const [contasRes, lancamentosRes] = await Promise.all([
       supabase.from("contas").select("*").eq("ativo", true),
-      supabase
-        .from("lancamentos")
-        .select("*, categorias(nome, cor), contas(nome, icone)")
-        .order("data_vencimento", { ascending: false })
-        .range(0, 49999),
+      buscarTodosLancamentos(),
     ]);
 
     const c = contasRes.data || [];
-    const l = lancamentosRes.data || [];
+    const l = lancamentosRes || [];
 
     cache.current = { contas: c, lancamentos: l, ts: Date.now() };
     setContas(c);
