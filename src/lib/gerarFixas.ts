@@ -3,7 +3,19 @@ import { dateHelper } from "@/lib/dateHelper";
 import { toast } from "@/components/ui/sonner";
 import { registrarLog } from "@/lib/logger";
 
-export async function gerarFixasParaMes(ano: number, mes: number) {
+// Mutex to prevent concurrent runs for the same month (avoids duplicates from racing refreshes/realtime)
+const emExecucao = new Map<string, Promise<number>>();
+
+export async function gerarFixasParaMes(ano: number, mes: number): Promise<number> {
+  const chave = `${ano}-${mes}`;
+  const existing = emExecucao.get(chave);
+  if (existing) return existing;
+  const promise = _gerarFixasParaMes(ano, mes).finally(() => emExecucao.delete(chave));
+  emExecucao.set(chave, promise);
+  return promise;
+}
+
+async function _gerarFixasParaMes(ano: number, mes: number) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return 0;
 
