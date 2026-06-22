@@ -14,6 +14,7 @@ import {
   RefreshCw,
   Settings,
   ClipboardList,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
@@ -26,6 +27,7 @@ const navItems = [
   { href: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { href: "/configuracoes", label: "Configurações", icon: Settings },
   { href: "/logs", label: "Auditoria", icon: ClipboardList },
+  { href: "/diagnostico", label: "Diagnóstico", icon: ShieldCheck },
 ];
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
