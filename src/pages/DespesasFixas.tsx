@@ -216,48 +216,47 @@ const DespesasFixas = () => {
           </Card>
         ) : (
           <>
-            <div className="space-y-3">
+            <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
               {fixas.map((f) => (
-                <Card key={f.id} className={`transition-opacity ${!f.ativo ? "opacity-50" : ""}`}>
-                  <CardContent className="py-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold">{f.categorias?.nome?.split(" ")[0] || "🔄"} {f.descricao}</span>
-                          {f.ativo ? (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success">Ativo ✅</span>
-                          ) : (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Inativo</span>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          💰 {formatCurrency(Number(f.valor))}/mês · 📅 Dia {f.dia_vencimento} · 🏦 {f.contas?.nome || "—"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          📆 {dateHelper.formatarParaExibicao(f.data_inicio)} → {f.data_fim ? dateHelper.formatarParaExibicao(f.data_fim) : "✨ Indeterminado"}
-                        </p>
-                      </div>
-                      <div className="flex gap-1 shrink-0">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toggleAtivo(f)}>
-                          {f.ativo ? "⏸️" : "▶️"}
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(f)}>
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(f.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                <div key={f.id} className={`group flex items-center gap-3 px-4 py-3 hover:bg-accent/40 transition-colors ${!f.ativo ? "opacity-50" : ""}`}>
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted text-lg"
+                    style={f.categorias?.cor ? { backgroundColor: `${f.categorias.cor}20`, color: f.categorias.cor } : undefined}>
+                    {f.categorias?.nome?.match(/\p{Emoji}/u)?.[0] || "🔁"}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="font-semibold text-sm truncate">{f.descricao}</p>
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${f.ativo ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>
+                        {f.ativo ? "Ativo" : "Inativo"}
+                      </span>
                     </div>
-                  </CardContent>
-                </Card>
+                    <p className="text-xs text-muted-foreground truncate">
+                      📅 Dia {f.dia_vencimento} · 🏦 {f.contas?.nome || "—"} · 📆 {dateHelper.formatarParaExibicao(f.data_inicio)}{f.data_fim ? ` → ${dateHelper.formatarParaExibicao(f.data_fim)}` : ""}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-base font-bold text-destructive tabular-nums">{formatCurrency(Number(f.valor))}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">/ mês</p>
+                  </div>
+                  <div className="flex items-center gap-0.5 shrink-0 sm:opacity-60 sm:group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toggleAtivo(f)} title={f.ativo ? "Pausar" : "Ativar"}>
+                      {f.ativo ? "⏸️" : "▶️"}
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(f)}>
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(f.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               ))}
             </div>
             <Card>
               <CardContent className="py-4">
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold text-sm">📊 Total Fixas (ativas)</span>
-                  <span className="font-bold text-destructive">{formatCurrency(totalFixas)}/mês</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">📊 Total Fixas (ativas)</span>
+                  <span className="text-lg font-bold text-destructive tabular-nums">{formatCurrency(totalFixas)}/mês</span>
                 </div>
               </CardContent>
             </Card>

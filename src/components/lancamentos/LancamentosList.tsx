@@ -85,34 +85,30 @@ const LancamentosList = ({ lancamentos, filtro, busca, onEdit, onDeleted }: Lanc
             {items.map((l: any) => {
               const st = getStatusInfo(l);
               return (
-                <div key={l.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-3 rounded-lg hover:bg-accent/50 transition-colors border border-border/50 sm:border-0 gap-2 sm:gap-0">
-                  {/* Top: icon + description + fixed badge */}
+                <div key={l.id} className="group flex flex-col sm:flex-row sm:items-center sm:justify-between py-2.5 px-3 rounded-xl border border-border bg-card hover:bg-accent/40 hover:shadow-sm transition-all gap-2 sm:gap-0">
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-base shrink-0">{l.contas?.icone || "💰"}</span>
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-base">{l.contas?.icone || "💰"}</span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <p className="font-medium text-sm truncate">{l.descricao}</p>
+                        <p className="font-semibold text-sm truncate">{l.descricao}</p>
                         {l.observacoes?.includes("🔄 Fixa:") && (
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">🔄</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">🔄</span>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">{l.categorias?.nome} · {l.contas?.nome || ""}</p>
+                      <p className="text-xs text-muted-foreground truncate">{l.categorias?.nome} · {l.contas?.nome || ""}</p>
                     </div>
                   </div>
-                  {/* Bottom: value + status + actions */}
-                  <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pl-8 sm:pl-0">
-                    <span className={`font-semibold text-sm ${l.tipo === "receita" ? "text-success" : "text-destructive"}`}>
+                  <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pl-12 sm:pl-0">
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${st.cls}`}>{st.label}</span>
+                    <span className={`font-bold text-base tabular-nums ${l.tipo === "receita" ? "text-success" : "text-destructive"}`}>
                       {l.tipo === "receita" ? "+" : "-"}{formatCurrency(Number(l.valor))}
                     </span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${st.cls}`}>
-                      {st.emoji} {st.label}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-7 sm:w-7" onClick={() => onEdit(l)}>
-                        <Edit2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                    <div className="flex items-center gap-0.5 sm:opacity-60 sm:group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(l)}>
+                        <Edit2 className="h-3.5 w-3.5" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-7 sm:w-7 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(l.id)}>
-                        <Trash2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(l.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </div>

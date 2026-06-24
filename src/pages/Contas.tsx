@@ -278,44 +278,39 @@ const Contas = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
             {contas.map((c) => {
               const saldoReal = calcularSaldoConta(c, allLancamentos);
               return (
-                <Card key={c.id} className="relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-1" style={{ backgroundColor: c.cor }} />
-                  <CardContent className="pt-5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{c.icone}</span>
-                        <div>
-                          <p className="font-semibold">{c.nome}</p>
-                          <p className="text-xs text-muted-foreground capitalize">{c.tipo}</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-warning" onClick={() => openAjuste(c)} title="Ajuste manual de caixa">
-                          <Wrench className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(c)}>
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(c.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="mt-4">
-                      <p className="text-xl font-bold">{formatCurrency(saldoReal)}</p>
-                      <p className="text-xs text-muted-foreground">Saldo atual</p>
-                    </div>
-                    <div className="mt-1">
-                      <p className="text-xs text-muted-foreground">
-                        Saldo inicial: {formatCurrency(Number(c.saldo_inicial))}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div key={c.id} className="group flex items-center gap-3 px-4 py-3 hover:bg-accent/40 transition-colors">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl border-2"
+                    style={{ borderColor: c.cor, backgroundColor: `${c.cor}15` }}>
+                    {c.icone}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-sm truncate">{c.nome}</p>
+                    <p className="text-xs text-muted-foreground capitalize">
+                      {c.tipo} · Inicial: {formatCurrency(Number(c.saldo_inicial))}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className={`text-base font-bold tabular-nums ${saldoReal >= 0 ? "text-success" : "text-destructive"}`}>
+                      {formatCurrency(saldoReal)}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Saldo atual</p>
+                  </div>
+                  <div className="flex items-center gap-0.5 shrink-0 sm:opacity-60 sm:group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-warning" onClick={() => openAjuste(c)} title="Ajuste manual">
+                      <Wrench className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(c)}>
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(c.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               );
             })}
           </div>
