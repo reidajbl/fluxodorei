@@ -150,146 +150,95 @@ const Dashboard = () => {
   const inicio = dateHelper.primeiroDiaMes(anoView, mesView);
   const fim = dateHelper.ultimoDiaMes(anoView, mesView);
 
+  const bannerIndicators = [
+    { label: "💰 A Receber", value: formatCurrency(resumo.aReceber) },
+    { label: "💸 A Pagar", value: formatCurrency(resumo.aPagar) },
+    { label: "💼 Total Contas", value: formatCurrency(resumo.totalContas) },
+    { label: "🔮 Projeção", value: formatCurrency(resumo.projecao), variation: { value: resumo.projecao >= 0 ? "Positiva" : "Negativa", positive: resumo.projecao >= 0 } },
+  ];
+
+  const bannerRight = (
+    <div className="flex items-center gap-1.5">
+      <Button variant="secondary" size="icon" className="h-8 w-8 bg-white/15 hover:bg-white/25 text-white border-0 backdrop-blur" onClick={mesAnterior}>
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+      <Button variant="secondary" size="sm" className="h-8 min-w-[120px] bg-white/15 hover:bg-white/25 text-white border-0 backdrop-blur" onClick={mesAtualBtn}>
+        {dateHelper.nomeMes(mesView)} {anoView}
+      </Button>
+      <Button variant="secondary" size="icon" className="h-8 w-8 bg-white/15 hover:bg-white/25 text-white border-0 backdrop-blur" onClick={mesProximo}>
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+      <Button variant="secondary" size="icon" className="h-8 w-8 bg-white/15 hover:bg-white/25 text-white border-0 backdrop-blur"
+        onClick={() => { refresh(); forceUpdate(); toast.success("Dashboard atualizado!"); }}>
+        <RefreshCw className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+
   return (
-    <DashboardLayout>
-      <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-screen overflow-hidden -m-4 md:-m-6 lg:-m-8 p-3 md:p-4 lg:p-6">
-        {/* Fixed top section */}
-        <div className="flex-none space-y-2 overflow-hidden">
-        {/* Header */}
-        <div className="bg-card rounded-xl border border-border p-3">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div>
-              <h1 className="text-lg font-bold">FLUXO REI DA JBL</h1>
-              <p className="text-xs text-muted-foreground">Controle financeiro simples</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" className="h-7 w-7" onClick={mesAnterior}><ChevronLeft className="h-3.5 w-3.5" /></Button>
-              <Button variant="outline" onClick={mesAtualBtn} className="min-w-[130px] h-7 text-sm">
-                {dateHelper.nomeMes(mesView)} {anoView}
-              </Button>
-              <Button variant="outline" size="icon" className="h-7 w-7" onClick={mesProximo}><ChevronRight className="h-3.5 w-3.5" /></Button>
-              <Button variant="outline" size="sm" className="h-7 ml-1" onClick={() => { refresh(); forceUpdate(); toast.success("Dashboard atualizado!"); }}>
-                <RefreshCw className="h-3.5 w-3.5 mr-1" /> Atualizar
-              </Button>
-            </div>
+    <DashboardLayout title="Visão geral deste mês" subtitle="Dashboard" indicators={bannerIndicators} bannerRight={bannerRight}>
+      {resumo.projecao < 0 && !alertDismissed && (
+        <div className="p-3 bg-destructive/10 border-l-4 border-destructive rounded-lg flex items-start gap-2">
+          <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+          <h4 className="font-bold text-destructive text-xs flex-1">🚨 PROJEÇÃO NEGATIVA — Déficit: {formatCurrency(Math.abs(resumo.projecao))}</h4>
+          <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0" onClick={() => setAlertDismissed(true)}>✕</Button>
+        </div>
+      )}
+
+      {/* Saldo por Conta */}
+      <div className="flex flex-wrap gap-1.5">
+        {Object.values(saldoRealPorConta).map((conta) => (
+          <div key={conta.nome} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-card border border-border rounded-lg text-xs shadow-sm">
+            <span>{conta.icone}</span>
+            <span className="font-medium">{conta.nome}</span>
+            <span className={`font-bold ${conta.saldo >= 0 ? "text-success" : "text-destructive"}`}>
+              {formatCurrency(conta.saldo)}
+            </span>
           </div>
-        </div>
+        ))}
+      </div>
 
-        {/* Negative projection alert */}
-        {resumo.projecao < 0 && !alertDismissed && (
-          <div className="p-3 bg-destructive/10 border-l-4 border-destructive rounded-lg">
-            <div className="flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <h4 className="font-bold text-destructive text-xs">🚨 PROJEÇÃO NEGATIVA — Déficit: {formatCurrency(Math.abs(resumo.projecao))}</h4>
-              </div>
-              <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0" onClick={() => setAlertDismissed(true)}>✕</Button>
-            </div>
-          </div>
-        )}
-
-        {/* Summary Cards */}
-        <div className="grid gap-2 grid-cols-2 lg:grid-cols-4">
-          <Card className="bg-success/5 border-success/20">
-            <CardContent className="p-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-medium text-muted-foreground uppercase">💰 A Receber</span>
-                <TrendingUp className="h-3 w-3 text-success" />
-              </div>
-              <div className="text-sm font-bold text-success">{formatCurrency(resumo.aReceber)}</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-destructive/5 border-destructive/20">
-            <CardContent className="p-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-medium text-muted-foreground uppercase">💸 A Pagar</span>
-                <TrendingDown className="h-3 w-3 text-destructive" />
-              </div>
-              <div className="text-sm font-bold text-destructive">{formatCurrency(resumo.aPagar)}</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-info/5 border-info/20">
-            <CardContent className="p-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-medium text-muted-foreground uppercase">💰 Total Contas</span>
-                <Wallet className="h-3 w-3 text-info" />
-              </div>
-              <div className={`text-sm font-bold ${resumo.totalContas >= 0 ? "text-success" : "text-destructive"}`}>
-                {formatCurrency(resumo.totalContas)}
-              </div>
-            </CardContent>
-          </Card>
-          <Card className={`${resumo.projecao >= 0 ? "bg-success/5 border-success/20" : "bg-destructive/5 border-destructive/20"}`}>
-            <CardContent className="p-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-medium text-muted-foreground uppercase">🔮 Projeção</span>
-                <Target className="h-3 w-3 text-warning" />
-              </div>
-              <div className={`text-sm font-bold ${resumo.projecao >= 0 ? "text-success" : "text-destructive"}`}>
-                {formatCurrency(resumo.projecao)}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Saldo por Conta - compact */}
-        <div className="flex flex-wrap gap-1.5">
-          {Object.values(saldoRealPorConta).map((conta) => (
-            <div key={conta.nome} className="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded-md text-xs">
-              <span>{conta.icone}</span>
-              <span className="font-medium">{conta.nome}</span>
-              <span className={`font-bold ${conta.saldo >= 0 ? "text-success" : "text-destructive"}`}>
-                {formatCurrency(conta.saldo)}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Action buttons + Tabs + Search */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          <Button size="sm" className="bg-success hover:bg-success/90 text-success-foreground shrink-0" onClick={() => openNew("receita")}>
-            <Plus className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Receita</span>
+      {/* Action + Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <Button size="sm" className="bg-success hover:bg-success/90 text-success-foreground shrink-0" onClick={() => openNew("receita")}>
+          <Plus className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Receita</span>
+        </Button>
+        <Button size="sm" variant="destructive" className="shrink-0" onClick={() => openNew("despesa")}>
+          <Minus className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Despesa</span>
+        </Button>
+        <div className="h-5 w-px bg-border mx-1 shrink-0" />
+        {TABS.map(t => (
+          <Button key={t.key} variant={filtro === t.key ? "default" : "outline"} size="sm"
+            onClick={() => setFiltro(t.key)} className="text-xs h-7 whitespace-nowrap shrink-0">
+            {t.label}
           </Button>
-          <Button size="sm" variant="destructive" className="shrink-0" onClick={() => openNew("despesa")}>
-            <Minus className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Despesa</span>
-          </Button>
-          <div className="h-5 w-px bg-border mx-1 shrink-0" />
-          {TABS.map(t => (
-            <Button key={t.key} variant={filtro === t.key ? "default" : "outline"} size="sm"
-              onClick={() => setFiltro(t.key)} className="text-xs h-7 whitespace-nowrap shrink-0">
-              {t.label}
-            </Button>
-          ))}
-        </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar lançamento..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-9 h-8 text-sm" />
-        </div>
-        </div>
+        ))}
+      </div>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input placeholder="Buscar lançamento..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-9 h-9 text-sm" />
+      </div>
 
-        {/* Lancamento Form Dialog */}
-        <LancamentoFormDialog
-          open={dialogOpen}
-          onOpenChange={(o) => { setDialogOpen(o); if (!o) setEditingLancamento(null); }}
-          editingLancamento={editingLancamento}
-          defaultTipo={defaultTipo}
-          onSaved={handleSaved}
-        />
+      <LancamentoFormDialog
+        open={dialogOpen}
+        onOpenChange={(o) => { setDialogOpen(o); if (!o) setEditingLancamento(null); }}
+        editingLancamento={editingLancamento}
+        defaultTipo={defaultTipo}
+        onSaved={handleSaved}
+      />
 
-        {/* Scrollable lancamentos area */}
-        <div className="flex-1 min-h-0 overflow-y-auto rounded-lg border border-border bg-card">
-          <div className="sticky top-0 bg-card z-10 px-4 py-2 border-b border-border">
-            <span className="text-sm font-semibold">📋 Lançamentos — {dateHelper.nomeMes(mesView)} {anoView}</span>
-          </div>
-          <div className="p-4">
-            <LancamentosList
-              lancamentos={lancamentos}
-              filtro={filtro}
-              busca={busca}
-              onEdit={openEdit}
-              onDeleted={handleSaved}
-            />
-          </div>
+      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+        <div className="px-4 py-3 border-b border-border">
+          <span className="text-sm font-semibold">📋 Lançamentos — {dateHelper.nomeMes(mesView)} {anoView}</span>
+        </div>
+        <div className="p-4">
+          <LancamentosList
+            lancamentos={lancamentos}
+            filtro={filtro}
+            busca={busca}
+            onEdit={openEdit}
+            onDeleted={handleSaved}
+          />
         </div>
       </div>
     </DashboardLayout>
