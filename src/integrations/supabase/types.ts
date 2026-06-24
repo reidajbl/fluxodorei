@@ -306,6 +306,27 @@ export type Database = {
         }
         Relationships: []
       }
+      preferencias_usuario: {
+        Row: {
+          banner_tipo: string
+          banner_valor: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          banner_tipo?: string
+          banner_valor?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          banner_tipo?: string
+          banner_valor?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tipos_recebimento: {
         Row: {
           cor: string | null
