@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DashboardProvider } from "@/contexts/DashboardContext";
 import { DadosProvider } from "@/contexts/DadosContext";
+import { BannerPreferenceProvider } from "@/contexts/BannerPreferenceContext";
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -28,6 +29,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <BannerPreferenceProvider>
           <DadosProvider>
           <DashboardProvider>
           <Routes>
@@ -46,6 +48,7 @@ const App = () => (
           </Routes>
           </DashboardProvider>
           </DadosProvider>
+          </BannerPreferenceProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
