@@ -16,9 +16,13 @@ export function calcularSaldoConta(
   const lancamentoQuitado = (l: { status: string | null; data_pagamento?: string | null }) =>
     l.status === "pago" || l.status === "recebido" || !!l.data_pagamento;
 
-  const lancamentosConta = todosLancamentos.filter(
-    (l) => l.conta_id === conta.id && lancamentoQuitado(l) && l.data_vencimento >= dataAlteracao
-  );
+  const lancamentosConta = todosLancamentos.filter((l) => {
+    if (l.conta_id !== conta.id || !lancamentoQuitado(l)) return false;
+    // Use a data efetiva de quitação (pagamento) para comparar com o checkpoint do saldo.
+    // Se não houver data_pagamento, cai para data_vencimento.
+    const dataEfetiva = l.data_pagamento || l.data_vencimento;
+    return dataEfetiva >= dataAlteracao;
+  });
 
   for (const l of lancamentosConta) {
     const valor = Math.abs(Number(l.valor || 0));
