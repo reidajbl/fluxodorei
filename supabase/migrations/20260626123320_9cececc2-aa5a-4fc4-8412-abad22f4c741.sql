@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "banners public read" ON storage.objects;
+CREATE POLICY "banners user read own folder" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'banners' AND (storage.foldername(name))[1] = (auth.uid())::text);
